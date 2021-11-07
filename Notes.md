@@ -3,25 +3,28 @@
 ## Breakdown of filedata
 
 
-| **DATA**                                           | **HEX**                                                                                        | **DESCRIPTION**                    |
-|----------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------|
-| VCP.XDATA.5f4d435305                               | *5643502E58444154410035663464343335333035*                                                     | VCP Path                           |
-| main                                               | *6D61696E*                                                                                     | Storage Path                       |
-| .0                                                 | *0030*                                                                                         | ??                                 |
-| 5                                                  | *35*                                                                                           | Filename length + 1, so max is 9   |
-| AEAN                                               | *4145414E*                                                                                     | Filename                           |
-| .00000031                                          | *003030303030303331*                                                                           | ??                                 |
-| main                                               | *6D61696E*                                                                                     | Storage Path                       |
-|                                                    | *FFFFFFFF*                                                                                     | 8 bytes - filename byte length     |
-|                                                    | *FFFFFFFFFFFFFFFFFFFFFFFF*                                                                     | ?? Space for longer file/path name |
-| AEAN                                               | *4145414E*                                                                                     | Filename                           |
-|                                                    | *FFFFFFFFFFFFFFFF*                                                                             | ?? Space for longer file/path name |
-| ....                                               | *0000001C*                                                                                     | FileSize decimal +20 in Classpad   |
-| GUQ          0000001c.............                 | *475551FFFFFFFFFFFFFFFFFFFF30303030303031630E000000000000000000000000*                         | ?? Header of some sorts            |
-| Hello World                                        | *48656C6C6F20576F726C64*                                                                       | File Data                          |
-| .                                                  | *00FF*                                                                                         | End Indicator                      |
-| ..                                                 | *1111*                                                                                         | Length identifier?                 |
-| 38                                                 | *3338*                                                                                         | Parity Bytes                       |
+| **DATA**             | **HEX**                                    | **DESCRIPTION**                    |
+|----------------------|--------------------------------------------|------------------------------------|
+| VCP.XDATA.5f4d435305 | *5643502E58444154410035663464343335333035* | VCP Path                           |
+| main                 | *6D61696E*                                 | Storage Path                       |
+| .0                   | *0030*                                     | ??                                 |
+| 5                    | *35*                                       | Filename length + 1, so max is 9   |
+| AEAN                 | *4145414E*                                 | Filename                           |
+| .00000031            | *003030303030303331*                       | ??                                 |
+| main                 | *6D61696E*                                 | Storage Path                       |
+|                      | *FFFFFFFF*                                 | 8 bytes - filename byte length     |
+|                      | *FFFFFFFFFFFFFFFFFFFFFFFF*                 | ?? Space for longer file/path name |
+| AEAN                 | *4145414E*                                 | Filename                           |
+|                      | *FFFFFFFFFFFFFFFF*                         | ?? Space for longer file/path name |
+| ....                 | *0000001C*                                 | FileSize decimal +20 in Classpad   |
+| GUQ                  | *475551FFFFFFFFFFFFFFFFFFFF*               | ?? Header of some sorts            |
+| 0000001c             | *3030303030303163*                         | FileSize in Classpad               |
+| .                    | *0E*                                       | Content Length +3                  |
+| ...........          | *000000000000000000000000*                 | ?? Space for longer header         |
+| Hello World          | *48656C6C6F20576F726C64*                   | File Data                          |
+| .                    | *00FF*                                     | End Indicator                      |
+| ..                   | *1111*                                     | Length identifier?                 |
+| 38                   | *3338*                                     | Parity Bytes                       |
 
 
 ## Raw bytes and testing
@@ -105,6 +108,48 @@ Parity Bytes = 35 33 => 53
 
 VCP.XDATA.5f4d435305main.05CEAN.00000031main            CEAN            ....GUQ          0000001c.............**A**. **53**
 
+
+#### Changing the file contents
+
+Clearly by altering the contents length, the number of endbytes changes such that filler bytes '11' are included.
+
+Additionally, the length bytes are determined by the content length.
+```
+Content: 'NULL'
+Content Length: 0
+End Bytes: 00 FF 11
+Length Bytes: 00 00 00 10
+
+Content: A
+Content Length: 1
+End Bytes: 00 FF
+Length Bytes: 00 00 00 10
+
+Content: AA
+Content Length: 2
+End Bytes: 00 FF 11 11 11
+Length Bytes: 00 00 00 14
+
+Content: AAA
+Content Length: 3
+End Bytes: 00 FF 11 11
+Length Bytes: 00 00 00 14
+
+Content: AAAA
+Content Length: 4
+End Bytes: 00 FF 11
+Length Bytes: 00 00 00 14
+
+Content: AAAAA
+Content Length: 5
+End Bytes: 00 FF
+Length Bytes: 00 00 00 14
+
+Content: AAAAAA
+Content Length: 6
+End Bytes: 00 FF 11 11 11
+Length Bytes: 00 00 00 18
+```
 
 ```q
 Changing first byte in Hello World => Parity
