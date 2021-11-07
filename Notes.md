@@ -1,0 +1,216 @@
+# Reverse Engineering Classpad Files for CASIO Classpad II FX-CP400
+
+## Breakdown of filedata
+
+
+| **DATA**                                           | **HEX**                                                                                        | **DESCRIPTION**                    |
+|----------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------|
+| VCP.XDATA.5f4d435305                               | *5643502E58444154410035663464343335333035*                                                     | VCP Path                           |
+| main                                               | *6D61696E*                                                                                     | Storage Path                       |
+| .0                                                 | *0030*                                                                                         | ??                                 |
+| 5                                                  | *35*                                                                                           | Filename length + 1, so max is 9   |
+| AEAN                                               | *4145414E*                                                                                     | Filename                           |
+| .00000031                                          | *003030303030303331*                                                                           | ??                                 |
+| main                                               | *6D61696E*                                                                                     | Storage Path                       |
+|                                                    | *FFFFFFFF*                                                                                     | 8 bytes - filename byte length     |
+|                                                    | *FFFFFFFFFFFFFFFFFFFFFFFF*                                                                     | ?? Space for longer file/path name |
+| AEAN                                               | *4145414E*                                                                                     | Filename                           |
+|                                                    | *FFFFFFFFFFFFFFFF*                                                                             | ?? Space for longer file/path name |
+| ....                                               | *0000001C*                                                                                     | FileSize decimal +20 in Classpad   |
+| GUQ          0000001c.............                 | *475551FFFFFFFFFFFFFFFFFFFF30303030303031630E000000000000000000000000*                         | ?? Header of some sorts            |
+| Hello World                                        | *48656C6C6F20576F726C64*                                                                       | File Data                          |
+| .                                                  | *00FF*                                                                                         | End Indicator                      |
+| ..                                                 | *1111*                                                                                         | Length identifier?                 |
+| 38                                                 | *3338*                                                                                         | Parity Bytes                       |
+
+
+## Raw bytes and testing
+
+#### Changing the filename
+
+AEAN-(Program).xcp
+
+*5643502E584441544100356634643433353330356D61696E0030354145414E0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF4145414EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113338*
+
+VCP.XDATA.5f4d435305main.05**A**EAN.00000031main            **A**EAN            ....GUQ          0000001c.............Hello World. ..**38**
+
+
+BEAN-(Program).xcp
+
+*5643502E584441544100356634643433353330356D61696E0030352345414E0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF4345414EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113336*
+
+VCP.XDATA.5f4d435305main.05**B**EAN.00000031main            **B**EAN            ....GUQ          0000001c.............Hello World. ..**36**
+
+
+CEAN-(Program).xcp
+
+*5643502E584441544100356634643433353330356D61696E0030354345414E0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF4345414EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113334*
+
+VCP.XDATA.5f4d435305main.05**C**EAN.00000031main            **C**EAN            ....GUQ          0000001c.............Hello World. ..**34**
+
+
+#### Changing the filename length
+
+AEAN-(Program).xcp
+
+*5643502E584441544100356634643433353330356D61696E0030354145414E0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF4145414EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113338*
+
+VCP.XDATA.5f4d435305main.05**A**EAN.00000031main            **A**EAN            ....GUQ          0000001c.............Hello World. ..**38**
+
+
+AAEAN-(Program).xcp
+
+*5643502E584441544100356634643433353330356D61696E003036414145414E0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF414145414EFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11116234*
+
+VCP.XDATA.5f4d435305main.06**AA**EAN.00000031main            **AA**EAN            ....GUQ          0000001c.............Hello World. ..**b4**
+
+
+AAAAAEAN-(Program).xcp
+
+*5643502E584441544100356634643433353330356D61696E003039414141414145414E0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF414141414145414EFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113238*
+
+VCP.XDATA.5f4d435305main.06**AAAAA**EAN.00000031main            **AAAAA**EAN            ....GUQ          0000001c.............Hello World. ..**28**
+
+
+#### Changing the file data
+
+CEAN-(Program).xcp
+
+VCP.XDATA.5f4d435305main.05CEAN.00000031main            CEAN            ....GUQ          0000001c.............**H**ello World. ..**34**
+
+
+CEAN-(Program).xcp
+
+VCP.XDATA.5f4d435305main.05CEAN.00000031main            CEAN            ....GUQ          0000001c.............**G**ello World. ..**35**
+
+
+CEAN-(Program).xcp
+
+VCP.XDATA.5f4d435305main.05CEAN.00000031main            CEAN            ....GUQ          0000001c.............**J**ello World. ..**32**
+
+
+CEAN-(Program).xcp
+
+VCP.XDATA.5f4d435305main.05CEAN.00000031main            CEAN            ....GUQ          0000001c.............**A**ello World. ..**3b**
+
+
+4D 65 6C 6C 6F 20 57 6F 72 6C 64 = Mello World => 2f
+
+
+CEAN.xcp
+
+Filedata = 41 => A
+
+Parity Bytes = 35 33 => 53
+
+VCP.XDATA.5f4d435305main.05CEAN.00000031main            CEAN            ....GUQ          0000001c.............**A**. **53**
+
+
+```js
+function hexSplitter(str) {
+    return str.match(/.{1,2}/g).join().replaceAll(","," ");
+}
+
+function calcHex(stringHex) {
+    let arrHex = stringHex.split(' ');
+    let totalDec = 0; 
+    for (let i=0; i<arrHex.length; i++) {
+        totalDec = parseInt(arrHex[i], 16);
+    }
+    return `Hex: ${totalDec.toString(16)} | Dec: ${totalDec}`;
+}
+
+function asciiToHex(str) {
+	var arr = [];
+	for (var n = 0, l = str.length; n < l; n ++) 
+     {
+		var hex = Number(str.charCodeAt(n)).toString(16);
+		arr.push(hex);
+	 }
+	return arr.join('');
+}
+
+// https://tomeko.net/online_tools/file_to_hex.php?lang=en
+
+function clean_hex(input, remove_0x) {
+    input = input.toUpperCase();
+    
+    if (remove_0x) {
+        input = input.replace(/0x/gi, "");        
+    }
+    
+    var orig_input = input;
+    input = input.replace(/[^A-Fa-f0-9]/g, "");
+    if (orig_input != input)
+        console.warn("Non-hex characters (including newlines) in input string ignored.");
+    return input;    
+} 
+
+function download(hexraw, filename) {
+    var cleaned_hex = clean_hex(hexraw, false);
+    if (cleaned_hex.length % 2) {
+        console.error("Cleaned hex string length is odd.");     
+        return;
+    }
+
+    var binary = new Array();
+    for (var i=0; i<cleaned_hex.length/2; i++) {
+    var h = cleaned_hex.substr(i*2, 2);
+    binary[i] = parseInt(h,16);        
+    }
+
+    var byteArray = new Uint8Array(binary);
+    var a = window.document.createElement('a');
+
+    a.href = window.URL.createObjectURL(new Blob([byteArray], { type: 'application/octet-stream' }));
+    a.download = filename;
+
+    // Append anchor to body.
+    document.body.appendChild(a)
+    a.click();
+
+    // Remove anchor from body
+    document.body.removeChild(a)        
+} 
+
+function generateHex() {
+    // main\CEAN.xcp => Hello World
+    let headerBytes = "5643502E584441544100356634643433353330356D61696E0030354345414E0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF4345414EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E000000000000000000000000";
+    let endBytes = "00FF1111";
+    let parityBytes = "3334";
+    let content = "Hello World";
+    // Note that changing Hello World changes the parityBytes
+    let filename = "c-converted.xcp";
+    let filedata = `${headerBytes}${asciiToHex(content)}${endBytes}${parityBytes}`;
+    console.log(filedata)
+    download(filedata,filename);
+}   
+```
+
+Changing first byte in Hello World => Parity
+
+M 2f
+
+L 30
+
+K 31
+
+J 32
+
+I 33
+
+H 34
+
+G 35
+
+F 36
+
+E 37
+
+D 38
+
+C 39
+
+B 3a
+
+A 3b
