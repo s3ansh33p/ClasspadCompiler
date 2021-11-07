@@ -106,111 +106,90 @@ Parity Bytes = 35 33 => 53
 VCP.XDATA.5f4d435305main.05CEAN.00000031main            CEAN            ....GUQ          0000001c.............**A**. **53**
 
 
-```js
-function hexSplitter(str) {
-    return str.match(/.{1,2}/g).join().replaceAll(","," ");
-}
-
-function calcHex(stringHex) {
-    let arrHex = stringHex.split(' ');
-    let totalDec = 0; 
-    for (let i=0; i<arrHex.length; i++) {
-        totalDec = parseInt(arrHex[i], 16);
-    }
-    return `Hex: ${totalDec.toString(16)} | Dec: ${totalDec}`;
-}
-
-function asciiToHex(str) {
-	var arr = [];
-	for (var n = 0, l = str.length; n < l; n ++) 
-     {
-		var hex = Number(str.charCodeAt(n)).toString(16);
-		arr.push(hex);
-	 }
-	return arr.join('');
-}
-
-// https://tomeko.net/online_tools/file_to_hex.php?lang=en
-
-function clean_hex(input, remove_0x) {
-    input = input.toUpperCase();
-    
-    if (remove_0x) {
-        input = input.replace(/0x/gi, "");        
-    }
-    
-    var orig_input = input;
-    input = input.replace(/[^A-Fa-f0-9]/g, "");
-    if (orig_input != input)
-        console.warn("Non-hex characters (including newlines) in input string ignored.");
-    return input;    
-} 
-
-function download(hexraw, filename) {
-    var cleaned_hex = clean_hex(hexraw, false);
-    if (cleaned_hex.length % 2) {
-        console.error("Cleaned hex string length is odd.");     
-        return;
-    }
-
-    var binary = new Array();
-    for (var i=0; i<cleaned_hex.length/2; i++) {
-    var h = cleaned_hex.substr(i*2, 2);
-    binary[i] = parseInt(h,16);        
-    }
-
-    var byteArray = new Uint8Array(binary);
-    var a = window.document.createElement('a');
-
-    a.href = window.URL.createObjectURL(new Blob([byteArray], { type: 'application/octet-stream' }));
-    a.download = filename;
-
-    // Append anchor to body.
-    document.body.appendChild(a)
-    a.click();
-
-    // Remove anchor from body
-    document.body.removeChild(a)        
-} 
-
-function generateHex() {
-    // main\CEAN.xcp => Hello World
-    let headerBytes = "5643502E584441544100356634643433353330356D61696E0030354345414E0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF4345414EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E000000000000000000000000";
-    let endBytes = "00FF1111";
-    let parityBytes = "3334";
-    let content = "Hello World";
-    // Note that changing Hello World changes the parityBytes
-    let filename = "c-converted.xcp";
-    let filedata = `${headerBytes}${asciiToHex(content)}${endBytes}${parityBytes}`;
-    console.log(filedata)
-    download(filedata,filename);
-}   
-```
-
+```q
 Changing first byte in Hello World => Parity
 
-M 2f
+Appears to be like the ascii table but in reverse and shited by an amount
 
-L 30
+Classpad Manual Pages 295-298 has classpad ascii table from 32 to 924 (in decimal)
 
-K 31
+124 - charCodeAt(0) or 7c - hex = parity
+-2 for ~ which wraps around to fe from 00
+```
 
-J 32
 
-I 33
+Special
 
-H 34
-
-G 35
-
-F 36
-
-E 37
-
-D 38
-
-C 39
-
-B 3a
-
-A 3b
+| **DATA** | **HEX** |
+|----------|---------|
+|    ~     |   fe    |
+|    }     |   ff    |
+|   \|     |   00    |
+|    {     |   01    |
+|    z     |   02    |
+|    a     |   1b    |
+|    `     |   1c    |
+|    _     |   1d    |
+|    ^     |   1e    |
+|    ]     |   1f    |
+|    \     |   20    |
+|    [     |   21    |
+|    Z     |   22    |
+|    Y     |   23    |
+|    X     |   24    |
+|    W     |   25    |
+|    V     |   26    |
+|    U     |   27    |
+|    T     |   28    |
+|    S     |   29    |
+|    R     |   2a    |
+|    Q     |   2b    |
+|    P     |   2c    |
+|    O     |   2d    |
+|    N     |   2e    |
+|    M     |   2f    |
+|    L     |   30    |
+|    K     |   31    |
+|    J     |   32    |
+|    I     |   33    |
+|    H     |   34    |
+|    G     |   35    |
+|    F     |   36    |
+|    E     |   37    |
+|    D     |   38    |
+|    C     |   39    |
+|    B     |   3a    |
+|    A     |   3b    |
+|    @     |   3c    |
+|    ?     |   3d    |
+|    >     |   3e    |
+|    =     |   3f    |
+|    <     |   40    |
+|    ;     |   41    |
+|    :     |   42    |
+|    9     |   43    |
+|    8     |   44    |
+|    7     |   45    |
+|    6     |   46    |
+|    5     |   47    |
+|    4     |   48    |
+|    3     |   49    |
+|    2     |   4a    |
+|    1     |   4b    |
+|    0     |   4c    |
+|    /     |   4d    |
+|    .     |   4e    |
+|    -     |   4f    |
+|    ,     |   50    |
+|    +     |   51    |
+|    *     |   52    |
+|    )     |   53    |
+|    (     |   54    |
+|    '     |   55    |
+|    &     |   56    |
+|    %     |   57    |
+|    $     |   58    |
+|    #     |   59    |
+|    "     |   5a    |
+|    !     |   5b    |
+|   ' '    |   5c    |

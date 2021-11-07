@@ -1,5 +1,25 @@
 const fs = require('fs');
 
+function fileParity(hexraw) {
+    var cleaned_hex = clean_hex(hexraw, false);
+    if (cleaned_hex.length % 2) {
+        console.error("Cleaned hex string length is odd.");     
+        return;
+    }
+
+    var binary = new Array();
+    for (var i=0; i<cleaned_hex.length/2; i++) {
+        var h = cleaned_hex.substr(i*2, 2);
+        binary[i] = parseInt(h,16);        
+    }
+    const bytes = binary.reduce(function(p, c){
+        return p + parseInt(c, 16);
+    }, 0).toString(16);
+    console.log(bytes);
+    console.log(binary)
+    
+}
+
 function hexSplitter(str) {
     return str.match(/.{1,2}/g).join().replaceAll(","," ");
 }
@@ -103,7 +123,7 @@ function generateHex() {
     "0030303030303033316D61696EFFFFFFFFFFFFFFFFFFFFFFFF" + asciiToHex(cpName) +
     "FFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E000000000000000000000000";
     let endBytes = "00FF1111";
-    let content = "Iello World";
+    let content = "|fllo SeanM";
     let filedata = `${headerBytes}${asciiToHex(content)}${endBytes}`;
     // fileParity(filedata);
     let parityBytes = evaluateParity(content)
@@ -117,34 +137,26 @@ function generateHex() {
 
 function evaluateParity(content) {
     // Fill probs need the entire filedata
-    const firstChar = content.slice(0,1)
-    const charCodeModifier = firstChar.charCodeAt(0);
-    // Need to convert someModifier to use base16 instead of 10
-    const someModifier = 14 + (charCodeModifier - 72)*2 // starting at H; // modifier for first character in content - also why 14?
-    const parityBytes = asciiToHex((asciiToHex(firstChar)-someModifier).toString());
-    console.log(`ParityBytes: ${parityBytes} | ModByte: ${(asciiToHex(firstChar)-someModifier)} | CharCode: ${charCodeModifier} | SomeMod: ${someModifier} BaseByte: ${asciiToHex(firstChar)}`)
+    let modByte = 0x50;
+    let baseByte;
+    for (let i=0; i<content.length; i++) {
+        baseByte = content.charCodeAt(i);
+        modByte -= baseByte;
+    
+        if (modByte < 0) {
+            modByte += 0x100;
+        }
+
+        console.log(`ModByte: ${modByte} | BaseByte: ${baseByte} | Ascii: ${content.slice(i,i+1)}`)
+    }
+
+    let parityBytes = asciiToHex(modByte.toString(16));
+    // Add padding 00
+    if (parityBytes.length === 2) {
+        parityBytes = `30${parityBytes}`;
+    }
+    console.log(`ParityBytes: ${parityBytes} | ModByte: ${modByte} | BaseByte: ${baseByte} | RotBase: ${0x7C} | Ascii: ${content.slice(0,1)}`)
     return parityBytes;
 }
 
-function fileParity(hexraw) {
-    var cleaned_hex = clean_hex(hexraw, false);
-    if (cleaned_hex.length % 2) {
-        console.error("Cleaned hex string length is odd.");     
-        return;
-    }
-
-    var binary = new Array();
-    for (var i=0; i<cleaned_hex.length/2; i++) {
-        var h = cleaned_hex.substr(i*2, 2);
-        binary[i] = parseInt(h,16);        
-    }
-    const bytes = binary.reduce(function(p, c){
-        return p + parseInt(c, 16);
-    }, 0).toString(16);
-    console.log(bytes);
-    console.log(binary)
-    
-}
-
-// generateHex();
-evaluateParity("C")
+generateHex();
