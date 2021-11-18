@@ -238,3 +238,30 @@ Special
 |    "     |   5a    |
 |    !     |   5b    |
 |   ' '    |   5c    |
+
+
+#### End Length Parity
+Not accounting for length byte parity
+
+```js
+ ["0000001c","00FF11","0f"]
+ => Hello World| = b8
+ => Should be = c8
+
+ ["0000001c","00FF","10"]
+ => Hello World|| = 3c
+ => Should be = 5c
+
+ ["00000020","00FF111111","11"]
+ => Hello World||| = c0
+ => Should be = a4
+```
+
+```js
+The difference is 0x10 for each extra "11" byte taken off.
+Assuming that this is true, then jump from two "|" to three "|" must be 0x30
+
+0xC0 + 0x30 = 0xF0
+0xF0 - 0XA4 = 0X4C
+Therefore rolling over to a new multiple of 4 has a modifier of 0x4C, at least in this case
+```

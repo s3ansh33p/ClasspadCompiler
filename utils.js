@@ -115,11 +115,15 @@ function nodeDownload(hexraw, filename) {
     });
 }
 
-function generateHex() {
+function generateHex(content) {
     // main\CEAN.xcp => Hello World
     const cpName = "CEAN"; // 4345414E
     const cpPath = "main"; // 6D61696E
-    const content = "A";
+
+    let lengthData = evaluateLengthBytes(content);
+
+    console.log(JSON.stringify(lengthData))
+
     // needs to account for longer / short names
     const headerBytes = "5643502E58444154410035663464343335333035" +
     asciiToHex(cpPath) + // folder
@@ -131,19 +135,20 @@ function generateHex() {
     "FFFFFFFFFFFFFFFFFFFFFFFF" +
     asciiToHex(cpName) +
     "FFFFFFFFFFFFFFFFFFFFFFFF" +
-    "0000001C" + // filesize probs need to use content length
+    lengthData[0] + //"0000001C" + // filesize probs need to use content length
     "475551FFFFFFFFFFFFFFFFFFFF" +
-    "3030303030303163" + // filesize
-    "0E" + // content length
+    asciiToHex(lengthData[0]) + // "3030303030303163" + // filesize
+    lengthData[2] + //"0E" + // content length
     "000000000000000000000000";
-    let endBytes = "00FF1111";
+    // let endBytes = "00FF1111";
+    let endBytes = lengthData[1];
     let filedata = `${headerBytes}${asciiToHex(content)}${endBytes}`;
     // fileParity(filedata);
-    let parityBytes = evaluateParity(content)
+    let parityBytes = evaluateParity(content, endBytes); // for 00FF1111 etc.
     // Note that changing Hello World changes the parityBytes
     let filename = "c-converted.xcp";
     filedata += parityBytes;
-    console.log(filedata)
+    console.log(filedata.toUpperCase())
     // download(filedata,filename);
     nodeDownload(filedata, filename);
 }   
@@ -163,7 +168,7 @@ function evaluateLengthBytes(content) {
     return [outBytes, endBytes, contentLength];
 }
 
-function evaluateParity(content) {
+function evaluateParity(content, endBytes) {
     // Fill probs need the entire filedata
     let modByte = 0x50;
     for (let i=0; i<content.length; i++) {
@@ -174,7 +179,24 @@ function evaluateParity(content) {
             modByte += 0x100;
         }
 
-        console.log(`ModByte: ${modByte} | BaseByte: ${baseByte} | Ascii: ${content.slice(i,i+1)}`)
+        // console.log(`ModByte: ${modByte} | BaseByte: ${baseByte} | Ascii: ${content.slice(i,i+1)}`)
+    }
+
+    // 00FF => + 0x20
+    // 00FF11 => + 0x10
+    // 00FF1111 => + 0x00
+    // 00FF111111 ?
+    if (endBytes.length === 10) {
+        console.warn("[WARN] Not explored yet")
+    } else if (endBytes.length === 6) {
+        modByte += 0x10;
+    } else if (endBytes.length === 4) {
+        modByte += 0x20;
+    }
+
+    // Final check to wrapping around hex values
+    if (modByte < 0) {
+        modByte += 0x100;
     }
 
     let parityBytes = asciiToHex(modByte.toString(16));
@@ -188,5 +210,9 @@ function evaluateParity(content) {
 
 // generateHex();
 
-let a = evaluateLengthBytes("ABCDEF")
-console.log(a)
+const body = "Hello World|||";
+
+// console.log(evaluateLengthBytes(body))
+// evaluateParity(body, true)
+generateHex(body)
+
