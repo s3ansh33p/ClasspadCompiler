@@ -372,4 +372,9 @@ The other two have 0x0C differences, more testing is needed.
 ```js
 For the remaining lengths, the difference is an additional 0x0C.
 A length of 3 chars is correct with the current implementation, so we can revert the 0x0C change.
+
+Going back to the filenames, we can apply the current parity solution to it.
+However, it needs to be ran twice to count for both occurances of the filename.
+This works for all filenames with char length 4.
+We also need to account for the filename length, so we take -0x02 for each char based on testing values.
 ```
