@@ -260,8 +260,65 @@ Not accounting for length byte parity
 ```js
 The difference is 0x10 for each extra "11" byte taken off.
 Assuming that this is true, then jump from two "|" to three "|" must be 0x30
+However, I will ignore the 0x30 for now.
+0xC0 - 0xA4 = 0x1C
+Therefore rolling over to a new multiple of 4 has a modifier of 0x1C, at least in this case
+```
 
-0xC0 + 0x30 = 0xF0
-0xF0 - 0XA4 = 0X4C
-Therefore rolling over to a new multiple of 4 has a modifier of 0x4C, at least in this case
+```js
+ ["00000020","00FF1111","12"]
+ => Hello World|||| = 44
+ => Should be = 38
+
+ ["00000020","00FF11","13"]
+ => Hello World||||| = d8
+ => Should be = cc
+
+ ["00000020","00FF","14"]
+ => Hello World|||||| = 6c
+ => Should be = 60
+```
+
+```js
+Exploring further with 0x10 differences accounted for, clearly something else is impacting the results.
+There is a constant difference of 0x0C now. Maybe the "00000020" is the cause?
+```
+
+```js
+ ["00000024","00FF111111","15"]
+ => 7x | = b4
+ => Should be = a8
+
+ ["00000024","00FF1111","16"]
+ => 8x | = 54
+ => Should be = 3c
+
+ ["00000024","00FF11","17"]
+ => 9x | = e8
+ => Should be = d0
+```
+
+```js
+With 7x |, the output is still 0x0C off.
+Though when this is changed to 8x |, it adds another 0x0C, => 0x18
+9x | also follows this, so I assume 10x and 11x will, then 12x will be another 0x0C?
+```
+
+```js
+ ["00000024","00FF","18"]
+ => 10x | = 7c
+ => Should be = 64
+
+ ["00000028","00FF111111","19"]
+ => 11x | = c4
+ => Should be = ac
+
+ ["00000028","00FF1111","1a"]
+ => 12x | = 64
+ => Should be = 40
+```
+
+```js
+As expected, the constant stayed the same at 0x18, and went to 0x24.
+We can now use the length and modifiy it to be val / 4 * 0x0C, in which we manipulate the length to get the val.
 ```

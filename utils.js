@@ -144,7 +144,7 @@ function generateHex(content) {
     let endBytes = lengthData[1];
     let filedata = `${headerBytes}${asciiToHex(content)}${endBytes}`;
     // fileParity(filedata);
-    let parityBytes = evaluateParity(content, endBytes); // for 00FF1111 etc.
+    let parityBytes = evaluateParity(content, endBytes, lengthData[2]); // for 00FF1111 etc.
     // Note that changing Hello World changes the parityBytes
     let filename = "c-converted.xcp";
     filedata += parityBytes;
@@ -168,7 +168,7 @@ function evaluateLengthBytes(content) {
     return [outBytes, endBytes, contentLength];
 }
 
-function evaluateParity(content, endBytes) {
+function evaluateParity(content, endBytes, contentLength) {
     // Fill probs need the entire filedata
     let modByte = 0x50;
     for (let i=0; i<content.length; i++) {
@@ -177,6 +177,8 @@ function evaluateParity(content, endBytes) {
     
         if (modByte < 0) {
             modByte += 0x100;
+        } else if (modByte > 0x100) {
+            modByte -= 0x100
         }
 
         // console.log(`ModByte: ${modByte} | BaseByte: ${baseByte} | Ascii: ${content.slice(i,i+1)}`)
@@ -185,18 +187,24 @@ function evaluateParity(content, endBytes) {
     // 00FF => + 0x20
     // 00FF11 => + 0x10
     // 00FF1111 => + 0x00
-    // 00FF111111 ?
+    // 00FF111111 => - 0x1C
     if (endBytes.length === 10) {
-        console.warn("[WARN] Not explored yet")
+        modByte -= 0x1C;
     } else if (endBytes.length === 6) {
         modByte += 0x10;
     } else if (endBytes.length === 4) {
         modByte += 0x20;
     }
 
+    // divide 4 byte constant
+    const byteContentLength = parseInt( ( parseInt( contentLength, 16 ) - 14) / 4 );
+    modByte -= 0x0C * byteContentLength;
+
     // Final check to wrapping around hex values
     if (modByte < 0) {
         modByte += 0x100;
+    } else if (modByte > 0x100) {
+        modByte -= 0x100
     }
 
     let parityBytes = asciiToHex(modByte.toString(16));
@@ -204,13 +212,13 @@ function evaluateParity(content, endBytes) {
     if (parityBytes.length === 2) {
         parityBytes = `30${parityBytes}`;
     }
-    console.log(`ParityBytes: ${parityBytes} | RotBase: ${0x50}`)
+    console.log(`ParityBytes: ${parityBytes} | ModByte: ${"0x" + modByte.toString(16).toUpperCase()} (${modByte}) | ContentLengthByte: ${byteContentLength} | RotBase: ${0x50}`)
     return parityBytes;
 }
 
 // generateHex();
 
-const body = "Hello World|||";
+const body = "Hello World|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
 
 // console.log(evaluateLengthBytes(body))
 // evaluateParity(body, true)
