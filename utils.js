@@ -1,36 +1,7 @@
 const fs = require('fs');
 
-function fileParity(hexraw) {
-    var cleaned_hex = clean_hex(hexraw, false);
-    if (cleaned_hex.length % 2) {
-        console.error("Cleaned hex string length is odd.");     
-        return;
-    }
-
-    var binary = new Array();
-    for (var i=0; i<cleaned_hex.length/2; i++) {
-        var h = cleaned_hex.substr(i*2, 2);
-        binary[i] = parseInt(h,16);        
-    }
-    const bytes = binary.reduce(function(p, c){
-        return p + parseInt(c, 16);
-    }, 0).toString(16);
-    console.log(bytes);
-    console.log(binary)
-    
-}
-
 function hexSplitter(str) {
     return str.match(/.{1,2}/g).join().replaceAll(","," ");
-}
-
-function calcHex(stringHex) {
-    let arrHex = stringHex.split(' ');
-    let totalDec = 0; 
-    for (let i=0; i<arrHex.length; i++) {
-        totalDec = parseInt(arrHex[i], 16);
-    }
-    return `Hex: ${totalDec.toString(16)} | Dec: ${totalDec}`;
 }
 
 function asciiToHex(str) {
@@ -42,8 +13,6 @@ function asciiToHex(str) {
 	 }
 	return arr.join('');
 }
-
-// https://tomeko.net/online_tools/file_to_hex.php?lang=en
 
 function clean_hex(input, remove_0x) {
     input = input.toUpperCase();
