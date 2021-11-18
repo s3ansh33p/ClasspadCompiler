@@ -377,4 +377,7 @@ Going back to the filenames, we can apply the current parity solution to it.
 However, it needs to be ran twice to count for both occurances of the filename.
 This works for all filenames with char length 4.
 We also need to account for the filename length, so we take -0x02 for each char based on testing values.
+
+Lets get file paths working now.
+The exact same logic from filenames can be applied to filepaths
 ```

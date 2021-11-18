@@ -118,21 +118,23 @@ function nodeDownload(hexraw, filename) {
 function generateHex(content) {
     // main\CEAN.xcp => Hello World
     const cpName = "Sean"; // 4345414E | 4343 - must be 1-8 chars
-    const cpPath = "main"; // 6D61696E
+    const cpPath = "McGinty"; // 6D61696E
 
     let lengthData = evaluateLengthBytes(content);
 
     console.log(JSON.stringify(lengthData))
 
     // needs to account for longer / short names
-    const headerBytes = "5643502E58444154410035663464343335333035" +
+    const headerBytes = "5643502E584441544100356634643433353330" +
+    "3" + (cpPath.length + 1) + // file path len
     asciiToHex(cpPath) + // folder
     "0030" +
     "3" + (cpName.length + 1) + // file name len
     asciiToHex(cpName) +
     "003030303030303331" +
     asciiToHex(cpPath) + // folder 
-    "FFFFFFFFFFFFFFFFFFFFFFFF" +
+    "FF".repeat(8 - cpPath.length) + // filepath padding
+    "FFFFFFFFFFFFFFFF" +
     asciiToHex(cpName) +
     "FF".repeat(8 - cpName.length) + // filename padding
     "FFFFFFFFFFFFFFFF" +
@@ -145,7 +147,7 @@ function generateHex(content) {
     let endBytes = lengthData[1];
     let filedata = `${headerBytes}${asciiToHex(content)}${endBytes}`;
     // fileParity(filedata);
-    let parityBytes = evaluateParity(content, endBytes, lengthData[2], cpName);
+    let parityBytes = evaluateParity(content, endBytes, lengthData[2], cpPath, cpName);
     // Note that changing Hello World changes the parityBytes
     let filename = "c-converted.xcp";
     filedata += parityBytes;
@@ -169,29 +171,29 @@ function evaluateLengthBytes(content) {
     return [outBytes, endBytes, contentLength];
 }
 
-function evaluateFilename(content) {
+function evaluatePath(content) {
     let modByte = 0x00;
     for (let i=0; i<content.length; i++) {
         let baseByte = content.charCodeAt(i);
-        modByte -= baseByte * 2; // done twice to account for both occurances of the filename
+        modByte -= baseByte * 2; // done twice to account for both occurances of the path
     
         if (modByte < 0) {
             modByte += 0x100;
         } else if (modByte > 0x100) {
             modByte -= 0x100
         }
-        // console.log(`ModByte: ${modByte} | BaseByte: ${baseByte} | Ascii: ${content.slice(i,i+1)}`)
+        // console.log(`ModByte: ${modByte} | BaseByte: ${baseByte} | Ascii: ${fullPath.slice(i,i+1)}`)
     }
     
     // Calculate filename length for parity
-    modByte -= 0x02 * (content.length - 4)
+    modByte -= 0x02 * (content.length - 8)
     return modByte;
 }
 
-function evaluateParity(content, endBytes, contentLength, filename) {
+function evaluateParity(content, endBytes, contentLength, filepath, filename) {
     // Fill probs need the entire filedata
-    let modByte = 0x7E;
-    modByte += evaluateFilename(filename);
+    let modByte = 0xC8;
+    modByte += evaluatePath(filepath + filename);
     for (let i=0; i<content.length; i++) {
         let baseByte = content.charCodeAt(i);
         modByte -= baseByte;
@@ -251,4 +253,5 @@ function evaluateParity(content, endBytes, contentLength, filename) {
 const body = "Hello World"
 
 generateHex(body)
-// evaluateFilename("CEAN");
+
+// evaluatePath("Sean", "main");
