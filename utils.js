@@ -188,17 +188,28 @@ function evaluateParity(content, endBytes, contentLength) {
     // 00FF11 => + 0x10
     // 00FF1111 => + 0x00
     // 00FF111111 => - 0x1C
-    if (endBytes.length === 10) {
+    if (endBytes.length == 10) {
         modByte -= 0x1C;
-    } else if (endBytes.length === 6) {
+    } else if (endBytes.length == 6) {
         modByte += 0x10;
-    } else if (endBytes.length === 4) {
+    } else if (endBytes.length == 4) {
         modByte += 0x20;
     }
 
     // divide 4 byte constant
-    const byteContentLength = parseInt( ( parseInt( contentLength, 16 ) - 14) / 4 );
+    const decimalContentLength = parseInt( contentLength, 16 ) ;
+    const byteContentLength = parseInt( ( decimalContentLength - 14) / 4 );
     modByte -= 0x0C * byteContentLength;
+
+    // check for char lengths under 7 | contentLength -3 is actual length
+    if (decimalContentLength < 10) {
+        modByte += 0x0C
+        if (decimalContentLength == 6) {
+            modByte -= 0x0C // revert change
+        } else if (decimalContentLength == 9) {
+            modByte -= 0xF4 // for some reason this works?
+        }
+    }
 
     // Final check to wrapping around hex values
     if (modByte < 0) {
@@ -218,7 +229,7 @@ function evaluateParity(content, endBytes, contentLength) {
 
 // generateHex();
 
-const body = "Hello World|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+const body = "Sean"
 
 // console.log(evaluateLengthBytes(body))
 // evaluateParity(body, true)

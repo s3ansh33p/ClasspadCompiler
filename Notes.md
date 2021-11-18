@@ -321,4 +321,55 @@ Though when this is changed to 8x |, it adds another 0x0C, => 0x18
 ```js
 As expected, the constant stayed the same at 0x18, and went to 0x24.
 We can now use the length and modifiy it to be val / 4 * 0x0C, in which we manipulate the length to get the val.
+We now need to check for smaller values.
+After some testing, everything works except when we get the 6 chars
+```
+
+```js
+ ["00000018","00FF111111","09"]
+ => HelloT = f8
+ => Should be = 04
+ // 0xF4 diff
+
+ "00000014","00FF","08"]
+ => Hello = 88
+ => Should be = 94
+ // 0x0C diff
+
+ ["00000014","00FF11","07"]
+ => Hell = e7
+ => Should be = f3
+ // 0x0C diff
+```
+
+```js
+Having a difference of 0xF4 is strange on length of 6 chars.
+The other two have 0x0C differences, more testing is needed.
+```
+
+```js
+ ["00000014","00FF1111","06"]
+ => Hel = 4f
+ => Should be = 4f
+ // Correct
+
+ ["00000014","00FF111111","05"]
+ => He = 9f
+ => Should be = ab
+ // 0x0C diff
+
+ ["00000010","00FF","04"]
+ => H = 40
+ => Shoulbe be = 4c
+  // 0x0C diff
+
+ ["00000010","00FF11","03"]
+ => NULL = 78
+ => Shoulbe be = 84
+  // 0x0C diff
+```
+
+```js
+For the remaining lengths, the difference is an additional 0x0C.
+A length of 3 chars is correct with the current implementation, so we can revert the 0x0C change.
 ```
