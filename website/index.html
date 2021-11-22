@@ -660,9 +660,7 @@
             const endBytes = "00FF" + "11".repeat(3 - ( (srcLength + 2) % 4));
 
             let outBytes = ((Math.round(srcLength / 4) * 4) + 16).toString(16);
-            outBytes = "00".repeat( (8 - outBytes.length) / 2) + outBytes;
-            
-            outBytes += "0".repeat(8 - outBytes.length);
+            outBytes = "0".repeat(8 - outBytes.length) + outBytes;
 
             return [outBytes, endBytes, contentLength];
         }
