@@ -88,12 +88,18 @@
                 <h3 class="float-md-start mb-0">Classpad II Tools</h3>
                 <nav class="nav nav-masthead justify-content-center float-md-end">
                     <a class="nav-link active" aria-current="page" href="#">Hex Editor</a>
-                    <a class="nav-link" href="https://githu.com/s3ansh33p" target="_blank">GitHub</a>
+                    <a class="nav-link" href="https://github.com/s3ansh33p" target="_blank">GitHub</a>
                 </nav>
             </div>
         </header>
 
-        <main class="px-3">
+        <main>
+            <select class="form-select form-select-sm bg-dark text-white mb-3">
+                <option value="4">4</option>
+                <option value="8">8</option>
+                <option selected value="16">16</option>
+                <option value="24">24</option>
+              </select>
 
             <div id="hexEditor"></div>
 
@@ -142,8 +148,8 @@
                 hexCells += `<span class="hex-cell mx-1" onmouseover="cellHover(this)" data-index="${i}">${hex[i*2]}${hex[i*2+1]}</span>`;
                 renderCells += `<span class="render-cell" onmouseover="cellHover(this, false)" data-index="${i}">${hexToAscii(hex[i*2] + hex[i*2+1])}</span>`;
             }
-            if (hex.length < 32) {
-                for (let i=hex.length / 2; i<16; i++) {
+            if (hex.length / 2 < cols) {
+                for (let i=hex.length / 2; i<cols; i++) {
                     hexCells += `<span class="hex-cell mx-1" onmouseover="cellHover(this)" data-index="${i}">00</span>`;
                     renderCells += `<span class="render-cell" onmouseover="cellHover(this, false)" data-index="${i}">.</span>`;
                 }
@@ -202,19 +208,18 @@
         }
 
         const hexEditor = document.getElementById('hexEditor');
+        let cols = 16;
 
         let cellIndex = null;
         let cellLine = null;
 
-        addHexLine(asciiToHexString("Hello World Yeah"))
-        addHexLine(asciiToHexString("Hello World"))
-        addHexLine("")
-        addHexLine("")
-        addHexLine("")
-        addHexLine("")
-        addHexLine("")
-        addHexLine("")
+        let input = "Hello World YeahHello World";
 
+        // Init render
+        for (let i=0; i<Math.ceil(input.length / cols); i++) {
+            let curAscii = input.slice(i * cols, (i + 1) * cols);
+            addHexLine(asciiToHexString(curAscii));
+        }
 
     </script>
 
