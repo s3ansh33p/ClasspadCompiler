@@ -2,10 +2,24 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="Sean McGinty">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+    <meta name="description" content="Explore XCP files for the Classpad II fx-CP400">
+    <meta itemprop="name" content="Classpad II Tools">
+    <meta itemprop="description" content="Explore XCP files for the Classpad II fx-CP400">
+    <meta itemprop="image" content="https://edu.casio.com/products/classroom/cp2m/images/img01_01.jpg">
+    <meta property="og:url" content="https://share.seanmcginty.space/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Classpad II Tools">
+    <meta property="og:description" content="Explore XCP files for the Classpad II fx-CP400">
+    <meta property="og:image" content="https://edu.casio.com/products/classroom/cp2m/images/img01_01.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Classpad II Tools">
+    <meta name="twitter:description" content="Explore XCP files for the Classpad II fx-CP400">
+    <meta name="twitter:image" content="https://edu.casio.com/products/classroom/cp2m/images/img01_01.jpg">
+    <meta name="description" content="Explore XCP files for the Classpad II fx-CP400" />
+    <meta name="author" content="Sean McGinty, Classpad II Tools" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Hex Editor | Classpad II Tools</title>
 
     <!-- Bootstrap core CSS -->
@@ -45,10 +59,10 @@
             box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
         }
 
-        .cover-container {
-            max-width: 42em;
+        form {
+            max-width: 460px;
+            margin: 0 auto;
         }
-
 
         /* Header */
 
@@ -82,8 +96,8 @@
 
 <body class="d-flex min-vh-100 text-center text-white bg-dark">
 
-    <div class="cover-container d-flex w-100 p-3 mx-auto flex-column">
-        <header class="mb-5">
+    <div class="container d-flex w-100 p-3 mx-auto flex-column">
+        <header class="mt-0 m-5">
             <div>
                 <h3 class="float-md-start mb-0">Classpad II Tools</h3>
                 <nav class="nav nav-masthead justify-content-center float-md-end">
@@ -94,12 +108,15 @@
         </header>
 
         <main>
-            <select class="form-select form-select-sm bg-dark text-white mb-3">
-                <option value="4">4</option>
-                <option value="8">8</option>
-                <option selected value="16">16</option>
-                <option value="24">24</option>
+            <form>
+            <select class="form-select form-select-sm bg-dark text-white mb-3" onchange="changeCols(this)">
+                <option value="4">4 columns</option>
+                <option value="8">8 columns</option>
+                <option selected value="16">16 columns</option>
+                <option value="24">24 columns</option>
+                <option value="32">32 columns</option>
               </select>
+            </form>
 
             <div id="hexEditor"></div>
 
@@ -141,7 +158,8 @@
         }
 
         function addHexLine(hex) {
-            const lineCounter = hexEditor.childElementCount + 1; 
+            const lineNumber = hexEditor.childElementCount + 1;
+            const lineCounter = hexEditor.childElementCount * cols; 
             let hexCells = '';
             let renderCells = '';
             for (let i=0; i<hex.length / 2; i++) {
@@ -155,7 +173,7 @@
                 }
             }
             hexEditor.innerHTML += `<pre class="d-flex justify-content-center m-0">
-                <span data-line="${lineCounter}">${int2hex(lineCounter)}</span>
+                <span data-line="${lineNumber}">${int2hex(lineCounter)}</span>
                 <span class="d-flex mx-3">
                     ${hexCells}
                 </span>
@@ -207,19 +225,31 @@
             }
         }
 
+        function changeCols(element) {
+            cols = element.value;
+            renderLines(input);
+        }
+
+        function renderLines(ascii) {
+            hexEditor.innerHTML = '';
+            cellIndex = null;
+            cellLine = null;
+            for (let i=0; i<Math.ceil(ascii.length / cols); i++) {
+                let curAscii = ascii.slice(i * cols, (i + 1) * cols);
+                addHexLine(asciiToHexString(curAscii));
+            }
+        }
+
         const hexEditor = document.getElementById('hexEditor');
         let cols = 16;
 
-        let cellIndex = null;
-        let cellLine = null;
+        let cellIndex, cellLine;
 
         let input = "Hello World YeahHello World";
 
-        // Init render
-        for (let i=0; i<Math.ceil(input.length / cols); i++) {
-            let curAscii = input.slice(i * cols, (i + 1) * cols);
-            addHexLine(asciiToHexString(curAscii));
-        }
+        renderLines(input);
+
+ 
 
     </script>
 
