@@ -88,8 +88,26 @@
             border-bottom-color: #fff;
         }
 
-        /* Hex Editor */
+        /* Scrollbar */
 
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111111; 
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #777777; 
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444444; 
+        }
+
+        /* Hex Editor */
+    
         .invis, .add {
             visibility: hidden;
         }
@@ -206,7 +224,7 @@
     </style>
 </head>
 
-<body class="d-flex min-vh-100 text-center text-white bg-dark">
+<body class="d-flex min-vh-100 text-white bg-dark">
 
     <div class="container d-flex w-100 p-3 mx-auto flex-column">
         <header class="mt-0 m-5">
@@ -221,11 +239,11 @@
 
         <main>
             
-            <div class="d-flex justify-content-center row mb-5">
-                <div class="col-2 px-0">
-                    <form class="d-flex flex-column align-items-start">
+            <div class="d-flex justify-content-center row mb-4">
+                <div class="col-3 px-0">
+                    <form class="d-flex flex-column align-items-start me-1">
                         <label class="mb-1">Columns</label>
-                        <select class="form-select form-select-sm bg-dark text-white mb-2" onchange="changeCols(this)">
+                        <select class="form-select form-select-sm bg-dark text-white" onchange="changeCols(this)">
                             <option value="4">4</option>
                             <option value="6">6</option>
                             <option value="8">8</option>
@@ -241,24 +259,37 @@
                             <option value="48">48</option>
                         </select>
                         <label for="inputName" class="mb-1">Filename</label>
-                        <input maxlength="8" oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputName">
+                        <input maxlength="8" oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white" id="inputName">
                         <label for="inputFolder" class="mb-1">Folder</label>
-                        <input maxlength="8" oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputFolder">
+                        <input maxlength="8" oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white" id="inputFolder">
                         <label for="inputBody" class="mb-1">Content</label>
-                        <input oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputBody">
+                        <input oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white" id="inputBody">
                         <label for="inputOut" class="mb-1">Download Name</label>
                         <input type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputOut">
-                        <button class="btn btn-light w-100" onclick="download()">Download</button>
+                        <button class="btn btn-light w-100 mb-1" onclick="download()">Download</button>
+                        <h6>Hex Information</h6>
+                        <h6 class="fw-normal">
+                            <span>Name:</span>
+                            <span id="info-name"></span>
+                        </h6>
+                        <h6 class="fw-normal">
+                            <span>Length:</span>
+                            <span id="info-len"></span>
+                        </h6>
+                        <h6 class="fw-normal">
+                            <span>Description:</span>
+                            <span id="info-desc"></span>
+                        </h6>
                     </form>
                 </div>
-                <div class="col-10 d-flex">
+                <div class="col-9 d-flex">
                     <div id="hexEditor" class="ms-3"></div>
                 </div>
             </div>
             
         </main>
 
-        <footer class="mt-auto text-white-50">
+        <footer class="text-center mt-auto text-white-50">
             <p>Made by <a class="text-light text-decoration-none" href="https://github.com/s3ansh33p" target="_blank">Sean McGinty</a></p>
         </footer>
     </div>
@@ -399,6 +430,8 @@
             hexEditor.classList = ['ms-3'];
             hexEditor.classList.add(`active-${activeClass.slice(5)}`)
 
+            renderInfo(activeClass);
+
             cellIndex = cell.getAttribute('data-index');
             cellLine = cell.parentElement.parentElement.children[0].getAttribute('data-line');
             
@@ -421,6 +454,88 @@
             renderLines(input);
         }
 
+        const infoData = [
+            {
+                'name': 'info-vcp',
+                'len': '10',
+                'desc': 'the text "VCP.XDATA" including the 0x00 terminator'
+            },
+            {
+                'name': 'info-mcs',
+                'len': '8',
+                'desc': 'the number 0x5f4d4353 (which would represent the text "_MCS")'
+            },
+            {
+                'name': 'info-folname-len',
+                'len': '2',
+                'desc': 'len of the folder name + 1 (because 0x00 terminator is included)'
+            },
+            {
+                'name': 'info-folname',
+                'len': '2-9',
+                'desc': 'name of the folder including 0x00 terminator'
+            },
+            {
+                'name': 'info-varname-len',
+                'len': '2',
+                'desc': 'len of the var name + 1 (because 0x00 terminator is included)'
+            },
+            {
+                'name': 'info-varname',
+                'len': '2-9',
+                'desc': 'name of the var including 0x00 terminator'
+            },
+            {
+                'name': 'info-block_31',
+                'len': '8',
+                'desc': 'the number "00000031"'
+            },
+            {
+                'name': 'info-folname2',
+                'len': '16',
+                'desc': 'name of the folder, padded with 0xff'
+            },
+            {
+                'name': 'info-varname2',
+                'len': '16',
+                'desc': 'name of the var, padded with 0xff'
+            },
+            {
+                'name': 'info-length',
+                'len': '4',
+                'desc': 'The length of the data block'
+            },
+            {
+                'name': 'info-var-type',
+                'len': '13',
+                'desc': 'the type of the var, padded with 0xff, see explanation further down (a program/text var has the type "GUQ")'
+            },
+            {
+                'name': 'info-length-ascii',
+                'len': '8',
+                'desc': 'the value of length again, but in ascii hex, small letters'
+            },
+            {
+                'name': 'info-data',
+                'len': 'X',
+                'desc': 'the actual data, see explanation further down'
+            },
+            {
+                'name': 'info-checksum',
+                'len': '2',
+                'desc': 'the checksum (take 0x00 and subtract all byes, except hex-ascii values, these are subtracted as hexadecimal numbers.'
+            }
+        ]
+
+        function renderInfo(name) {
+            let data = infoData.find(x => x.name == name);
+            document.getElementById("info-name").innerText = name.slice(5);
+            document.getElementById("info-name").classList = [];
+            document.getElementById("info-name").classList.add(name);
+            document.getElementById("info-len").innerText = data.len + " bytes";
+            document.getElementById("info-desc").innerText = data.desc;
+        }
+
         function renderLines(hex) {
             hexEditor.innerHTML = '';
             cellCounter = 0;
@@ -439,17 +554,23 @@
                 if (checkIndex >= 2) {
                     checkElem.parentElement.children[checkIndex - 1].classList.replace("info-data", "info-checksum");
                     checkElem.parentElement.children[checkIndex - 2].classList.replace("info-data", "info-checksum");
-                } else if (checkIndex == 1) {
-                    checkElem.parentElement.children[0].classList.replace("info-data", "info-checksum");
-                    hexEditor.children[checkLine - 2].children[1].children[15].classList.replace("info-data", "info-checksum");
+
+                    hexEditor.children[checkLine - 1].children[2].children[checkIndex - 1].classList.replace("info-data", "info-checksum");
+                    hexEditor.children[checkLine - 1].children[2].children[checkIndex - 2].classList.replace("info-data", "info-checksum");
                 } else {
-                    hexEditor.children[checkLine - 2].children[1].children[15].classList.replace("info-data", "info-checksum");
-                    hexEditor.children[checkLine - 2].children[1].children[14].classList.replace("info-data", "info-checksum");
+                    checkElem.parentElement.children[0].classList.replace("info-data", "info-checksum");
+                    hexEditor.children[checkLine - 2].children[1].children[cols - 1].classList.replace("info-data", "info-checksum");
+
+                    hexEditor.children[checkLine - 1].children[2].children[0].classList.replace("info-data", "info-checksum");
+                    hexEditor.children[checkLine - 2].children[2].children[cols - 1].classList.replace("info-data", "info-checksum");
                 }
             } else {
                 checkLine = hexEditor.childElementCount;
-                hexEditor.children[checkLine - 1].children[1].children[15].classList.replace("info-data", "info-checksum");
-                hexEditor.children[checkLine - 1].children[1].children[14].classList.replace("info-data", "info-checksum");
+                hexEditor.children[checkLine - 1].children[1].children[cols - 1].classList.replace("info-data", "info-checksum");
+                hexEditor.children[checkLine - 1].children[1].children[cols - 2].classList.replace("info-data", "info-checksum");
+                
+                hexEditor.children[checkLine - 1].children[2].children[cols - 1].classList.replace("info-data", "info-checksum");
+                hexEditor.children[checkLine - 1].children[2].children[cols - 2].classList.replace("info-data", "info-checksum");
             }
 
         }
@@ -612,6 +733,7 @@
         const hexEditor = document.getElementById('hexEditor');
 
         let cols = 16;
+
         let input = "5643502E584441544100356634643433353330384D6347696E74790030355365616E0030303030303033314D6347696E7479FFFFFFFFFFFFFFFFFF5365616EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113232"
 
         let cellIndex, cellLine, cellCounter;
