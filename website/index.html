@@ -7,16 +7,16 @@
     <meta name="description" content="Explore XCP files for the Classpad II fx-CP400">
     <meta itemprop="name" content="Classpad II Tools">
     <meta itemprop="description" content="Explore XCP files for the Classpad II fx-CP400">
-    <meta itemprop="image" content="https://edu.casio.com/products/classroom/cp2m/images/img01_01.jpg">
+    <meta itemprop="image" content="https://res.cloudinary.com/s3ansh33p/image/upload/fl_lossy,f_auto/v1637595401/classpadIIhex_cm7fwz.webp">
     <meta property="og:url" content="https://share.seanmcginty.space/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Classpad II Tools">
     <meta property="og:description" content="Explore XCP files for the Classpad II fx-CP400">
-    <meta property="og:image" content="https://edu.casio.com/products/classroom/cp2m/images/img01_01.jpg">
+    <meta property="og:image" content="https://res.cloudinary.com/s3ansh33p/image/upload/fl_lossy,f_auto/v1637595401/classpadIIhex_cm7fwz.webp">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Classpad II Tools">
     <meta name="twitter:description" content="Explore XCP files for the Classpad II fx-CP400">
-    <meta name="twitter:image" content="https://edu.casio.com/products/classroom/cp2m/images/img01_01.jpg">
+    <meta name="twitter:image" content="https://res.cloudinary.com/s3ansh33p/image/upload/fl_lossy,f_auto/v1637595401/classpadIIhex_cm7fwz.webp">
     <meta name="description" content="Explore XCP files for the Classpad II fx-CP400" />
     <meta name="author" content="Sean McGinty, Classpad II Tools" />
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
@@ -267,7 +267,7 @@
                         <label for="inputOut" class="mb-1">Download Name</label>
                         <input type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputOut">
                         <button class="btn btn-light w-100 mb-1" onclick="download()">Download</button>
-                        <h6>Hex Information</h6>
+                        <h6>Hex Information (<a class="text-warning text-decoration-none" href="https://github.com/SnailMath/classpad/blob/main/file_formats/xcp.md" target="_blank">source</a>)</h6>
                         <h6 class="fw-normal">
                             <span>Name:</span>
                             <span id="info-name"></span>
@@ -486,7 +486,7 @@
                 'desc': 'name of the var including 0x00 terminator'
             },
             {
-                'name': 'info-block_31',
+                'name': 'info-block-31',
                 'len': '8',
                 'desc': 'the number "00000031"'
             },
@@ -508,7 +508,7 @@
             {
                 'name': 'info-var-type',
                 'len': '13',
-                'desc': 'the type of the var, padded with 0xff, see explanation further down (a program/text var has the type "GUQ")'
+                'desc': 'the type of the var, padded with 0xff, see explanation <a class="text-warning text-decoration-none" href="https://github.com/SnailMath/classpad/blob/main/file_formats/xcp.md#xcp-var_type" target="_blank">here</a>'
             },
             {
                 'name': 'info-length-ascii',
@@ -518,7 +518,7 @@
             {
                 'name': 'info-data',
                 'len': 'X',
-                'desc': 'the actual data, see explanation further down'
+                'desc': 'the actual data, see explanation <a class="text-warning text-decoration-none" href="https://github.com/SnailMath/classpad/blob/main/file_formats/xcp.md#programtext-variables" target="_blank">here</a>'
             },
             {
                 'name': 'info-checksum',
@@ -533,7 +533,7 @@
             document.getElementById("info-name").classList = [];
             document.getElementById("info-name").classList.add(name);
             document.getElementById("info-len").innerText = data.len + " bytes";
-            document.getElementById("info-desc").innerText = data.desc;
+            document.getElementById("info-desc").innerHTML = data.desc;
         }
 
         function renderLines(hex) {
