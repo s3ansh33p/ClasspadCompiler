@@ -716,11 +716,13 @@
                     modByte -= 0xF4
                 }
             }
-
-            if (modByte < 0) {
-                modByte += 0x100;
-            } else if (modByte > 0x100) {
+         
+            while(modByte > 0x100) {
                 modByte -= 0x100
+            }
+
+            while(modByte < 0) {
+                modByte += 0x100
             }
 
             let parityBytes = asciiToHexString(modByte.toString(16));
