@@ -56,7 +56,7 @@
 
         body {
             text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
-            box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
+            box-shadow: inset 0 0 2.5rem rgba(0, 0, 0, .5);
         }
 
         form {
@@ -90,12 +90,118 @@
 
         /* Hex Editor */
 
+        .invis, .add {
+            visibility: hidden;
+        }
+
+        /* May be used later */
+        .add {
+            background-color: cornflowerblue;
+        }
+
+        .add::after {
+            content: "+";
+            padding: 0.25em;
+        }
+
         /* Info Backougrounds */
 
         .info-vcp {
-            background-color: rgba(0, 255, 255, 0.2);
+            background-color: rgba(255, 0, 0, 0.4);
         }
 
+        .info-mcs {
+            background-color: rgba(255, 85, 0, 0.4);
+        } 
+
+        .info-folname-len, .info-varname-len {
+            background-color: rgba(255, 170, 0, 0.4);
+        } 
+
+        .info-folname, .info-varname {
+            background-color: rgba(150, 255, 0, 0.4);
+        } 
+
+        .info-block31 {
+            background-color: rgba(0, 230, 255, 0.4);
+        } 
+
+        .info-folname2 {
+            background-color: rgba(0, 180, 255, 0.4);
+        } 
+
+        .info-varname2 {
+            background-color: rgba(0, 130, 255, 0.4);
+        } 
+
+        .info-length {
+            background-color: rgba(0, 70, 255, 0.4);
+        }
+
+        .info-var-type {
+            background-color: rgba(0, 0, 255, 0.4);
+        }
+
+        .info-length-ascii {
+            background-color: rgba(200, 0, 255, 0.4);
+        }
+
+        .info-data {
+            background-color: rgba(255, 40, 255, 0.4);
+        }
+
+        .info-checksum {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Cell Grouping Backgrounds */
+        .active-vcp .info-vcp {
+            background-color: rgba(255, 0, 0, 0.8);
+        }
+
+        .active-mcs .info-mcs {
+            background-color: rgba(255, 85, 0, 0.8);
+        } 
+
+        .active-folname-len .info-folname-len, .active-varname-len .info-varname-len {
+            background-color: rgba(255, 170, 0, 0.8);
+        } 
+
+        .active-folname .info-folname, .active-varname .info-varname {
+            background-color: rgba(150, 255, 0, 0.8);
+        } 
+
+        .active-block31 .info-block31 {
+            background-color: rgba(0, 230, 255, 0.8);
+        } 
+
+        .active-folname2 .info-folname2 {
+            background-color: rgba(0, 180, 255, 0.8);
+        } 
+
+        .active-varname2 .info-varname2 {
+            background-color: rgba(0, 130, 255, 0.8);
+        } 
+
+        .active-length .info-length {
+            background-color: rgba(0, 70, 255, 0.8);
+        }
+
+        .active-var-type .info-var-type {
+            background-color: rgba(0, 0, 255, 0.8);
+        }
+
+        .active-length-ascii .info-length-ascii {
+            background-color: rgba(200, 0, 255, 0.8);
+        }
+
+        .active-data .info-data {
+            background-color: rgba(255, 40, 255, 0.8);
+        }
+
+        .active-checksum .info-checksum {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
         
     </style>
 </head>
@@ -113,23 +219,41 @@
             </div>
         </header>
 
-        <main class="d-flex justify-content-center">
-            <form>
-                <select class="form-select form-select-sm bg-dark text-white mb-3" onchange="changeCols(this)">
-                    <option value="4">4 columns</option>
-                    <option value="8">8 columns</option>
-                    <option selected value="16">16 columns</option>
-                    <option value="24">24 columns</option>
-                    <option value="32">32 columns</option>
-                </select>
-            </form>
+        <main>
             
-            <div>
-                <div class="side-info">
-            
+            <div class="d-flex justify-content-center row mb-5">
+                <div class="col-2 px-0">
+                    <form class="d-flex flex-column align-items-start">
+                        <label class="mb-1">Columns</label>
+                        <select class="form-select form-select-sm bg-dark text-white mb-2" onchange="changeCols(this)">
+                            <option value="4">4</option>
+                            <option value="6">6</option>
+                            <option value="8">8</option>
+                            <option value="12">12</option>
+                            <option selected value="16">16</option>
+                            <option value="20">20</option>
+                            <option value="24">24</option>
+                            <option value="28">28</option>
+                            <option value="32">32</option>
+                            <option value="36">36</option>
+                            <option value="40">40</option>
+                            <option value="48">44</option>
+                            <option value="48">48</option>
+                        </select>
+                        <label for="inputName" class="mb-1">Filename</label>
+                        <input maxlength="8" oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputName">
+                        <label for="inputFolder" class="mb-1">Folder</label>
+                        <input maxlength="8" oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputFolder">
+                        <label for="inputBody" class="mb-1">Content</label>
+                        <input oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputBody">
+                        <label for="inputOut" class="mb-1">Download Name</label>
+                        <input type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputOut">
+                        <button class="btn btn-light w-100" onclick="download()">Download</button>
+                    </form>
                 </div>
-
-                <div id="hexEditor"></div>
+                <div class="col-10 d-flex">
+                    <div id="hexEditor" class="ms-3"></div>
+                </div>
             </div>
             
         </main>
@@ -182,13 +306,25 @@
             for (let i=0; i<hex.length / 2; i++) {
                 cellCounter++;
                 const infoBG = getInfoBackground();
+
+                // process counter for colors
+                if (cellCounter >= 21 && cellCounter <= 29) {
+                    if (hex[i*2] + hex[i*2+1] == "00") {
+                        cellCounter = 29;
+                    }
+                } else if (cellCounter >= 31 && cellCounter <= 40) {
+                    if (hex[i*2] + hex[i*2+1] == "00") {
+                        cellCounter = 40;
+                    }
+                }
+
                 hexCells += `<span class="hex-cell px-1 ${infoBG}" onmouseover="cellHover(this)" data-index="${i}">${hex[i*2]}${hex[i*2+1]}</span>`;
                 renderCells += `<span class="render-cell ${infoBG}" onmouseover="cellHover(this, false)" data-index="${i}">${hexToAscii(hex[i*2] + hex[i*2+1])}</span>`;
             }
             if (hex.length / 2 < cols) {
-                for (let i=hex.length / 2; i<cols; i++) {
-                    hexCells += `<span class="hex-cell px-1" onmouseover="cellHover(this)" data-index="${i}">00</span>`;
-                    renderCells += `<span class="render-cell" onmouseover="cellHover(this, false)" data-index="${i}">.</span>`;
+                for (let i=(hex.length / 2); i<cols; i++) {
+                    hexCells += `<span class="hex-cell px-1 ${i == (hex.length / 2) ? 'add' : 'invis'}" onmouseover="cellHover(this)" data-index="${i}">${i == (hex.length / 2) ? '' : '00'}</span>`;
+                    renderCells += `<span class="render-cell invis" onmouseover="cellHover(this, false)" data-index="${i}">.</span>`;
                 }
             }
             hexEditor.innerHTML += `<pre class="d-flex justify-content-center m-0">
@@ -226,16 +362,42 @@
 
         // function that returns a background color class based on the cellCounter
         function getInfoBackground() {
-            if (cellCounter < 10) {
+            if (cellCounter <= 10) { // 10
                 return 'info-vcp';
+            } else if (cellCounter <= 18) { // 8
+                return 'info-mcs';
+            } else if (cellCounter <= 20) { // 2
+                return 'info-folname-len';
+            } else if (cellCounter <= 29) { // 2-9
+                return 'info-folname';
+            } else if (cellCounter <= 31) { // 2
+                return 'info-varname-len';
+            } else if (cellCounter <= 40) { // 2- 9
+                return 'info-varname';
+            } else if (cellCounter <= 48) { // 8
+                return 'info-block31';
+            } else if (cellCounter <= 64) { // 16
+                return 'info-folname2';
+            } else if (cellCounter <= 80) { // 16
+                return 'info-varname2';
+            } else if (cellCounter <= 84) { // 4
+                return 'info-length';
+            } else if (cellCounter <= 97) { // 13
+                return 'info-var-type';
+            } else if (cellCounter <= 105) { // 8
+                return 'info-length-ascii';
             } else {
-                return '';
+                return 'info-data';
             }
         }
 
 
         function cellHover(cell, fromHex = true) {
             clearCellHover();
+
+            const activeClass = cell.classList[cell.classList.length-1];
+            hexEditor.classList = ['ms-3'];
+            hexEditor.classList.add(`active-${activeClass.slice(5)}`)
 
             cellIndex = cell.getAttribute('data-index');
             cellLine = cell.parentElement.parentElement.children[0].getAttribute('data-line');
@@ -270,17 +432,175 @@
             }
         }
 
+        function inputHandler(element) {
+            input = generateHex(document.getElementById('inputBody').value, document.getElementById('inputName').value, document.getElementById('inputFolder').value)
+            renderLines(input);
+        }
+
+        function download() {
+            if ( document.getElementById('inputName').value.length == 0 || document.getElementById('inputFolder').value.length == 0) {
+                console.log("Error: Folder or Filename has no value");
+                return;
+            }
+            let filename = document.getElementById("inputOut").value;
+            var cleaned_hex = clean_hex(input, false);
+            if (cleaned_hex.length % 2) {
+                console.error("Cleaned hex string length is odd.");     
+                return;
+            }
+
+            var binary = new Array();
+            for (var i=0; i<cleaned_hex.length/2; i++) {
+            var h = cleaned_hex.substr(i*2, 2);
+            binary[i] = parseInt(h,16);        
+            }
+
+            var byteArray = new Uint8Array(binary);
+            var a = window.document.createElement('a');
+
+            a.href = window.URL.createObjectURL(new Blob([byteArray], { type: 'application/octet-stream' }));
+            a.download = filename;
+
+            document.body.appendChild(a)
+            a.click();
+
+            document.body.removeChild(a)        
+        } 
+
+        function clean_hex(input, remove_0x) {
+            input = input.toUpperCase();
+            
+            if (remove_0x) {
+                input = input.replace(/0x/gi, "");        
+            }
+            
+            var orig_input = input;
+            input = input.replace(/[^A-Fa-f0-9]/g, "");
+            if (orig_input != input)
+                console.warn("Non-hex characters (including newlines) in input string ignored.");
+            return input;    
+        } 
+        
+        function generateHex(content, cpName, cpPath) {
+            let lengthData = evaluateLengthBytes(content);
+            const headerBytes = "5643502E584441544100356634643433353330" +
+            "3" + (cpPath.length + 1) +
+            asciiToHexString(cpPath) +
+            "0030" +
+            "3" + (cpName.length + 1) +
+            asciiToHexString(cpName) +
+            "003030303030303331" +
+            asciiToHexString(cpPath) +
+            "FF".repeat(8 - cpPath.length) +
+            "FFFFFFFFFFFFFFFF" +
+            asciiToHexString(cpName) +
+            "FF".repeat(8 - cpName.length) +
+            "FFFFFFFFFFFFFFFF" +
+            lengthData[0] +
+            "475551FFFFFFFFFFFFFFFFFFFF" +
+            asciiToHexString(lengthData[0]) +
+            lengthData[2] +
+            "000000000000000000000000";
+            let endBytes = lengthData[1];
+            let filedata = `${headerBytes}${asciiToHexString(content)}${endBytes}`;
+            let parityBytes = evaluateParity(content, endBytes, lengthData[2], cpPath, cpName);
+            filedata += parityBytes;
+            console.log("filedata.length:", filedata.length);
+            return filedata.toUpperCase()
+        }   
+
+        function evaluateLengthBytes(content) {
+            const srcLength = content.length;
+
+            let contentLength = (srcLength+3).toString(16);
+            if (contentLength.length % 2 === 1) contentLength = "0" + contentLength;
+
+            const endBytes = "00FF" + "11".repeat(3 - ( (srcLength + 2) % 4));
+
+            let outBytes = ((Math.round(srcLength / 4) * 4) + 16).toString(16);
+            outBytes = "00".repeat( (8 - outBytes.length) / 2) + outBytes;
+
+            return [outBytes, endBytes, contentLength];
+        }
+
+        function evaluatePath(content) {
+            let modByte = 0x00;
+            for (let i=0; i<content.length; i++) {
+                let baseByte = content.charCodeAt(i);
+                modByte -= baseByte * 2;
+            
+                if (modByte < 0) {
+                    modByte += 0x100;
+                } else if (modByte > 0x100) {
+                    modByte -= 0x100
+                }
+            }
+            
+            modByte -= 0x02 * (content.length - 8)
+            return modByte;
+        }
+
+        function evaluateParity(content, endBytes, contentLength, filepath, filename) {
+            let modByte = 0xC8;
+            modByte += evaluatePath(filepath + filename);
+            for (let i=0; i<content.length; i++) {
+                let baseByte = content.charCodeAt(i);
+                modByte -= baseByte;
+            
+                if (modByte < 0) {
+                    modByte += 0x100;
+                } else if (modByte > 0x100) {
+                    modByte -= 0x100
+                }
+            }
+
+            if (endBytes.length == 10) {
+                modByte -= 0x1C;
+            } else if (endBytes.length == 6) {
+                modByte += 0x10;
+            } else if (endBytes.length == 4) {
+                modByte += 0x20;
+            }
+
+            const decimalContentLength = parseInt( contentLength, 16 ) ;
+            const byteContentLength = parseInt( ( decimalContentLength - 14) / 4 );
+            modByte -= 0x0C * byteContentLength;
+
+            if (decimalContentLength < 10) {
+                modByte += 0x0C
+                if (decimalContentLength == 6) {
+                    modByte -= 0x0C
+                } else if (decimalContentLength == 9) {
+                    modByte -= 0xF4
+                }
+            }
+
+            if (modByte < 0) {
+                modByte += 0x100;
+            } else if (modByte > 0x100) {
+                modByte -= 0x100
+            }
+
+            let parityBytes = asciiToHexString(modByte.toString(16));
+            if (parityBytes.length === 2) {
+                parityBytes = `30${parityBytes}`;
+            }
+            return parityBytes;
+        }
+
         const hexEditor = document.getElementById('hexEditor');
 
         let cols = 16;
-        // let input = "VCP.XDATA.5f4d435308McGinty.05Sean.00000031McGinty         Sean            ....GUQ          0000001c.............Hello World. ..22"
         let input = "5643502E584441544100356634643433353330384D6347696E74790030355365616E0030303030303033314D6347696E7479FFFFFFFFFFFFFFFFFF5365616EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113232"
 
         let cellIndex, cellLine, cellCounter;
 
+        document.getElementById('inputName').value = "Sean";
+        document.getElementById('inputFolder').value = "McGinty";
+        document.getElementById('inputBody').value = "Hello World";
+        document.getElementById("inputOut").value = "converted.xcp";
+        
         renderLines(input);
-
- 
 
     </script>
 
