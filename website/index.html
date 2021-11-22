@@ -90,6 +90,12 @@
 
         /* Hex Editor */
 
+        /* Info Backougrounds */
+
+        .info-vcp {
+            background-color: rgba(0, 255, 255, 0.2);
+        }
+
         
     </style>
 </head>
@@ -102,41 +108,51 @@
                 <h3 class="float-md-start mb-0">Classpad II Tools</h3>
                 <nav class="nav nav-masthead justify-content-center float-md-end">
                     <a class="nav-link active" aria-current="page" href="#">Hex Editor</a>
-                    <a class="nav-link" href="https://github.com/s3ansh33p" target="_blank">GitHub</a>
+                    <a class="nav-link" href="https://github.com/s3ansh33p/ClasspadCompiler" target="_blank">GitHub</a>
                 </nav>
             </div>
         </header>
 
-        <main>
+        <main class="d-flex justify-content-center">
             <form>
-            <select class="form-select form-select-sm bg-dark text-white mb-3" onchange="changeCols(this)">
-                <option value="4">4 columns</option>
-                <option value="8">8 columns</option>
-                <option selected value="16">16 columns</option>
-                <option value="24">24 columns</option>
-                <option value="32">32 columns</option>
-              </select>
+                <select class="form-select form-select-sm bg-dark text-white mb-3" onchange="changeCols(this)">
+                    <option value="4">4 columns</option>
+                    <option value="8">8 columns</option>
+                    <option selected value="16">16 columns</option>
+                    <option value="24">24 columns</option>
+                    <option value="32">32 columns</option>
+                </select>
             </form>
+            
+            <div>
+                <div class="side-info">
+            
+                </div>
 
-            <div id="hexEditor"></div>
-
+                <div id="hexEditor"></div>
+            </div>
+            
         </main>
 
         <footer class="mt-auto text-white-50">
-            <p>Made by Sean McGinty</p>
+            <p>Made by <a class="text-light text-decoration-none" href="https://github.com/s3ansh33p" target="_blank">Sean McGinty</a></p>
         </footer>
     </div>
 
 
     <script>
-        // function that takes in a single hex byte and returns an ascii character
+        // function that takes in a single hex byte and returns an ascii character and returns a '.' if it is not a readable character
         function hexToAscii(hex) {
-            return String.fromCharCode(parseInt(hex, 16));
+            if (parseInt(hex, 16) >= 0x20 && parseInt(hex, 16) <= 0x7E) {
+                return String.fromCharCode(parseInt(hex, 16));
+            } else {
+                return '.';
+            }
         }
 
         // function that takes in a single ascii character and returns a hex byte
         function asciiToHex(ascii) {
-            return ascii.charCodeAt(0).toString(16);
+            return ascii.charCodeAt(0).toString(16).toUpperCase();
         }
 
         // function that takes in an ascii string and returns a hex string
@@ -153,6 +169,7 @@
             var ascii = '';
             for (var i = 0; i < hex.length; i += 2) {
                 ascii += hexToAscii(hex.substr(i, 2));
+                console.log(hexToAscii(hex.substr(i, 2)))
             }
             return ascii;
         }
@@ -163,12 +180,14 @@
             let hexCells = '';
             let renderCells = '';
             for (let i=0; i<hex.length / 2; i++) {
-                hexCells += `<span class="hex-cell mx-1" onmouseover="cellHover(this)" data-index="${i}">${hex[i*2]}${hex[i*2+1]}</span>`;
-                renderCells += `<span class="render-cell" onmouseover="cellHover(this, false)" data-index="${i}">${hexToAscii(hex[i*2] + hex[i*2+1])}</span>`;
+                cellCounter++;
+                const infoBG = getInfoBackground();
+                hexCells += `<span class="hex-cell px-1 ${infoBG}" onmouseover="cellHover(this)" data-index="${i}">${hex[i*2]}${hex[i*2+1]}</span>`;
+                renderCells += `<span class="render-cell ${infoBG}" onmouseover="cellHover(this, false)" data-index="${i}">${hexToAscii(hex[i*2] + hex[i*2+1])}</span>`;
             }
             if (hex.length / 2 < cols) {
                 for (let i=hex.length / 2; i<cols; i++) {
-                    hexCells += `<span class="hex-cell mx-1" onmouseover="cellHover(this)" data-index="${i}">00</span>`;
+                    hexCells += `<span class="hex-cell px-1" onmouseover="cellHover(this)" data-index="${i}">00</span>`;
                     renderCells += `<span class="render-cell" onmouseover="cellHover(this, false)" data-index="${i}">.</span>`;
                 }
             }
@@ -205,6 +224,16 @@
             return color;
         }
 
+        // function that returns a background color class based on the cellCounter
+        function getInfoBackground() {
+            if (cellCounter < 10) {
+                return 'info-vcp';
+            } else {
+                return '';
+            }
+        }
+
+
         function cellHover(cell, fromHex = true) {
             clearCellHover();
 
@@ -212,7 +241,7 @@
             cellLine = cell.parentElement.parentElement.children[0].getAttribute('data-line');
             
             const linkedCell = cell.parentElement.parentElement.children[(fromHex ? 2 : 1)].querySelector(`[data-index='${cell.getAttribute("data-index")}']`);
-            const color = randomColor();
+            const color = "orange"
             
             cell.style.backgroundColor = color;
             linkedCell.style.backgroundColor = color;
@@ -220,8 +249,8 @@
 
         function clearCellHover() {
             if (cellIndex) {
-                hexEditor.children[cellLine-1].children[1].children[cellIndex].style.backgroundColor = 'transparent';
-                hexEditor.children[cellLine-1].children[2].children[cellIndex].style.backgroundColor = 'transparent';
+                hexEditor.children[cellLine-1].children[1].children[cellIndex].style.backgroundColor = '';
+                hexEditor.children[cellLine-1].children[2].children[cellIndex].style.backgroundColor = '';
             }
         }
 
@@ -230,22 +259,24 @@
             renderLines(input);
         }
 
-        function renderLines(ascii) {
+        function renderLines(hex) {
             hexEditor.innerHTML = '';
+            cellCounter = 0;
             cellIndex = null;
             cellLine = null;
-            for (let i=0; i<Math.ceil(ascii.length / cols); i++) {
-                let curAscii = ascii.slice(i * cols, (i + 1) * cols);
-                addHexLine(asciiToHexString(curAscii));
+            for (let i=0; i<Math.ceil(hex.length / 2 / cols); i++) {
+                let curHex = hex.slice(2 * i * cols, 2 * (i + 1) * cols);
+                addHexLine(curHex);
             }
         }
 
         const hexEditor = document.getElementById('hexEditor');
+
         let cols = 16;
+        // let input = "VCP.XDATA.5f4d435308McGinty.05Sean.00000031McGinty         Sean            ....GUQ          0000001c.............Hello World. ..22"
+        let input = "5643502E584441544100356634643433353330384D6347696E74790030355365616E0030303030303033314D6347696E7479FFFFFFFFFFFFFFFFFF5365616EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113232"
 
-        let cellIndex, cellLine;
-
-        let input = "Hello World YeahHello World";
+        let cellIndex, cellLine, cellCounter;
 
         renderLines(input);
 
