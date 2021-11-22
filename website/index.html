@@ -430,6 +430,28 @@
                 let curHex = hex.slice(2 * i * cols, 2 * (i + 1) * cols);
                 addHexLine(curHex);
             }
+            // Checksum
+            let checkElem = document.getElementsByClassName("add")[0];
+            let checkIndex, checkLine
+            if (checkElem) {
+                checkIndex = parseInt(checkElem.getAttribute("data-index"));
+                checkLine = parseInt(checkElem.parentElement.parentElement.children[0].getAttribute("data-line"));
+                if (checkIndex >= 2) {
+                    checkElem.parentElement.children[checkIndex - 1].classList.replace("info-data", "info-checksum");
+                    checkElem.parentElement.children[checkIndex - 2].classList.replace("info-data", "info-checksum");
+                } else if (checkIndex == 1) {
+                    checkElem.parentElement.children[0].classList.replace("info-data", "info-checksum");
+                    hexEditor.children[checkLine - 2].children[1].children[15].classList.replace("info-data", "info-checksum");
+                } else {
+                    hexEditor.children[checkLine - 2].children[1].children[15].classList.replace("info-data", "info-checksum");
+                    hexEditor.children[checkLine - 2].children[1].children[14].classList.replace("info-data", "info-checksum");
+                }
+            } else {
+                checkLine = hexEditor.childElementCount;
+                hexEditor.children[checkLine - 1].children[1].children[15].classList.replace("info-data", "info-checksum");
+                hexEditor.children[checkLine - 1].children[1].children[14].classList.replace("info-data", "info-checksum");
+            }
+
         }
 
         function inputHandler(element) {
@@ -505,7 +527,6 @@
             let filedata = `${headerBytes}${asciiToHexString(content)}${endBytes}`;
             let parityBytes = evaluateParity(content, endBytes, lengthData[2], cpPath, cpName);
             filedata += parityBytes;
-            console.log("filedata.length:", filedata.length);
             return filedata.toUpperCase()
         }   
 
