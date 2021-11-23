@@ -1,9 +1,5 @@
 const fs = require('fs');
 
-function hexSplitter(str) {
-    return str.match(/.{1,2}/g).join().replaceAll(","," ");
-}
-
 function asciiToHex(str) {
 	var arr = [];
 	for (var n = 0, l = str.length; n < l; n ++) 
@@ -26,33 +22,6 @@ function clean_hex(input, remove_0x) {
     if (orig_input != input)
         console.warn("Non-hex characters (including newlines) in input string ignored.");
     return input;    
-} 
-
-function download(hexraw, filename) {
-    var cleaned_hex = clean_hex(hexraw, false);
-    if (cleaned_hex.length % 2) {
-        console.error("Cleaned hex string length is odd.");     
-        return;
-    }
-
-    var binary = new Array();
-    for (var i=0; i<cleaned_hex.length/2; i++) {
-    var h = cleaned_hex.substr(i*2, 2);
-    binary[i] = parseInt(h,16);        
-    }
-
-    var byteArray = new Uint8Array(binary);
-    var a = window.document.createElement('a');
-
-    a.href = window.URL.createObjectURL(new Blob([byteArray], { type: 'application/octet-stream' }));
-    a.download = filename;
-
-    // Append anchor to body.
-    document.body.appendChild(a)
-    a.click();
-
-    // Remove anchor from body
-    document.body.removeChild(a)        
 } 
 
 function nodeDownload(hexraw, filename) {
@@ -84,143 +53,85 @@ function nodeDownload(hexraw, filename) {
     });
 }
 
-function generateHex(content) {
-    // main\CEAN.xcp => Hello World
-    const cpName = "Sean"; // 4345414E | 4343 - must be 1-8 chars
-    const cpPath = "McGinty"; // 6D61696E
+function generateHex(content, cpName, cpPath) {
+    let file = {
+        'vcp': '5643502E584441544100',
+        'mcs': asciiToHex('5f4d4353'),
+        'folname_len': '333' + (cpPath.length + 1),
+        'folname': asciiToHex(cpPath)+"00",
+        'varname_len': '333' + (cpName.length + 1),
+        'varname': asciiToHex(cpName)+"00",
+        'block31': asciiToHex('00000031'),
+        'folname2': asciiToHex(cpPath) + "FF".repeat(16 - cpPath.length),
+        'varname2': asciiToHex(cpName) + "FF".repeat(16 - cpName.length),
+        'len': '',
+        'var_type': '475551FFFFFFFFFFFFFFFFFFFF',
+        'length_ascii': '',
+        'data': {
+            'text_len': '',
+            'block_zero_8': '0000000000000000',
+            'block_zero': '00',
+            'text': asciiToHex(content),
+            'eof': '00FF',
+            'padding': "11".repeat(3 - ( (content.length + 2) % 4))
+        },
+        'checksum': ''
+    }
 
-    let lengthData = evaluateLengthBytes(content);
+    // Length Data
+    let outBytes = ((Math.round(content.length / 4) * 4) + 16).toString(16);
+    outBytes = "0".repeat(8 - outBytes.length) + outBytes;
+    file.len = outBytes;
 
-    console.log(JSON.stringify(lengthData))
+    // Length_Ascii Data
+    file.length_ascii = asciiToHex(outBytes);
 
-    // needs to account for longer / short names
-    const headerBytes = "5643502E584441544100356634643433353330" +
-    "3" + (cpPath.length + 1) + // file path len
-    asciiToHex(cpPath) + // folder
-    "0030" +
-    "3" + (cpName.length + 1) + // file name len
-    asciiToHex(cpName) +
-    "003030303030303331" +
-    asciiToHex(cpPath) + // folder 
-    "FF".repeat(8 - cpPath.length) + // filepath padding
-    "FFFFFFFFFFFFFFFF" +
-    asciiToHex(cpName) +
-    "FF".repeat(8 - cpName.length) + // filename padding
-    "FFFFFFFFFFFFFFFF" +
-    lengthData[0] + //"0000001C" + // filesize probs need to use content length
-    "475551FFFFFFFFFFFFFFFFFFFF" +
-    asciiToHex(lengthData[0]) + // "3030303030303163" + // filesize
-    lengthData[2] + //"0E" + // content length
-    "000000000000000000000000";
-    // let endBytes = "00FF1111";
-    let endBytes = lengthData[1];
-    let filedata = `${headerBytes}${asciiToHex(content)}${endBytes}`;
-    // fileParity(filedata);
-    let parityBytes = evaluateParity(content, endBytes, lengthData[2], cpPath, cpName);
-    // Note that changing Hello World changes the parityBytes
-    let filename = "c-converted.xcp";
-    filedata += parityBytes;
-    console.log(filedata.toUpperCase())
-    // download(filedata,filename);
-    nodeDownload(filedata, filename);
+    // Text_Len Data
+    let text_len = (content.length+3).toString(16);
+    text_len += "0".repeat(8 - text_len.length);
+    file.data.text_len = text_len;
+
+    console.log(file)
+
+    // join all data fields in order in the file and calculate checksum
+    let file_data = "";
+    for (let key in file) {
+        if (key === "data") {
+            file_data += file["data"].text_len;
+            file_data += file["data"].block_zero_8;
+            file_data += file["data"].block_zero;
+            file_data += file["data"].text;
+            file_data += file["data"].eof;
+            file_data += file["data"].padding;
+        } else if (key !== "checksum") {
+            file_data += file[key];
+        }
+    }
+
+    let checksum = 0;        
+    let bytes = file_data.match(/.{1,2}/g);
+    for (let i=0; i<bytes.length; i++) {
+        checksum -= parseInt(bytes[i], 16);
+        console.log(checksum)
+    }
+
+    while (checksum < -8192) {
+        checksum += 8192;
+    }
+    while (checksum < -1024) {
+        checksum += 1024;
+    }
+    while (checksum < 0) {
+        checksum += 256;
+    }
+
+    file_data += asciiToHex(checksum.toString(16));
+    
+    console.log(checksum, asciiToHex(checksum.toString(16)))
+    console.log(file_data.toUpperCase())
+
+    nodeDownload(file_data, filename);
 }   
 
-function evaluateLengthBytes(content) {
-    const srcLength = content.length; // srcLength may also involve file name / path ?
-
-    let contentLength = (srcLength+3).toString(16);
-    if (contentLength.length % 2 === 1) contentLength = "0" + contentLength;
-
-    const endBytes = "00FF" + "11".repeat(3 - ( (srcLength + 2) % 4)); // filler '11' bytes
-
-    let outBytes = ((Math.round(srcLength / 4) * 4) + 16).toString(16);
-    outBytes = "00".repeat( (8 - outBytes.length) / 2) + outBytes;
-
-    console.log(`OutBytes: ${outBytes} | EndBytes: ${endBytes} | OutLength: ${contentLength}`)
-    return [outBytes, endBytes, contentLength];
-}
-
-function evaluatePath(content) {
-    let modByte = 0x00;
-    for (let i=0; i<content.length; i++) {
-        let baseByte = content.charCodeAt(i);
-        modByte -= baseByte * 2; // done twice to account for both occurances of the path
-    
-        if (modByte < 0) {
-            modByte += 0x100;
-        } else if (modByte > 0x100) {
-            modByte -= 0x100
-        }
-        // console.log(`ModByte: ${modByte} | BaseByte: ${baseByte} | Ascii: ${fullPath.slice(i,i+1)}`)
-    }
-    
-    // Calculate filename length for parity
-    modByte -= 0x02 * (content.length - 8)
-    return modByte;
-}
-
-function evaluateParity(content, endBytes, contentLength, filepath, filename) {
-    // Fill probs need the entire filedata
-    let modByte = 0xC8;
-    modByte += evaluatePath(filepath + filename);
-    for (let i=0; i<content.length; i++) {
-        let baseByte = content.charCodeAt(i);
-        modByte -= baseByte;
-    
-        if (modByte < 0) {
-            modByte += 0x100;
-        } else if (modByte > 0x100) {
-            modByte -= 0x100
-        }
-
-        // console.log(`ModByte: ${modByte} | BaseByte: ${baseByte} | Ascii: ${content.slice(i,i+1)}`)
-    }
-
-    // 00FF => + 0x20
-    // 00FF11 => + 0x10
-    // 00FF1111 => + 0x00
-    // 00FF111111 => - 0x1C
-    if (endBytes.length == 10) {
-        modByte -= 0x1C;
-    } else if (endBytes.length == 6) {
-        modByte += 0x10;
-    } else if (endBytes.length == 4) {
-        modByte += 0x20;
-    }
-
-    // divide 4 byte constant
-    const decimalContentLength = parseInt( contentLength, 16 ) ;
-    const byteContentLength = parseInt( ( decimalContentLength - 14) / 4 );
-    modByte -= 0x0C * byteContentLength;
-
-    // check for char lengths under 7 | contentLength -3 is actual length
-    if (decimalContentLength < 10) {
-        modByte += 0x0C
-        if (decimalContentLength == 6) {
-            modByte -= 0x0C // revert change
-        } else if (decimalContentLength == 9) {
-            modByte -= 0xF4 // for some reason this works?
-        }
-    }
-
-    // Final check to wrapping around hex values
-    if (modByte < 0) {
-        modByte += 0x100;
-    } else if (modByte > 0x100) {
-        modByte -= 0x100
-    }
-
-    let parityBytes = asciiToHex(modByte.toString(16));
-    // Add padding 00
-    if (parityBytes.length === 2) {
-        parityBytes = `30${parityBytes}`;
-    }
-    console.log(`ParityBytes: ${parityBytes} | ModByte: ${"0x" + modByte.toString(16).toUpperCase()} (${modByte}) | ContentLengthByte: ${byteContentLength} | RotBase: ${0x50}`)
-    return parityBytes;
-}
-
-const body = "Hello World"
-
-generateHex(body)
-
-// evaluatePath("Sean", "main");
+const filename = "c-converted.xcp"
+generateHex("Hello WorldS", "Sean", "McGinty")

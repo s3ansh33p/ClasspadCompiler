@@ -113,14 +113,14 @@
         }
 
         /* May be used later */
-        .add {
+        /* .add {
             background-color: cornflowerblue;
         }
 
         .add::after {
             content: "+";
             padding: 0.25em;
-        }
+        } */
 
         /* Info Backougrounds */
 
@@ -354,7 +354,7 @@
             }
             if (hex.length / 2 < cols) {
                 for (let i=(hex.length / 2); i<cols; i++) {
-                    hexCells += `<span class="hex-cell px-1 ${i == (hex.length / 2) ? 'add' : 'invis'}" onmouseover="cellHover(this)" data-index="${i}">${i == (hex.length / 2) ? '' : '00'}</span>`;
+                    hexCells += `<span class="hex-cell px-1 add ${i == (hex.length / 2) ? 'add' : ''}" onmouseover="cellHover(this)" data-index="${i}">00</span>`;
                     renderCells += `<span class="render-cell invis" onmouseover="cellHover(this, false)" data-index="${i}">.</span>`;
                 }
             }
@@ -578,6 +578,10 @@
         function inputHandler(element) {
             input = generateHex(document.getElementById('inputBody').value, document.getElementById('inputName').value, document.getElementById('inputFolder').value)
             renderLines(input);
+            const inputIDs = ["inputName", "inputFolder", "inputBody", "inputOut"];
+            for (let i=0; i<inputIDs.length; i++) {
+                localStorage.setItem(inputIDs[i], document.getElementById(inputIDs[i]).value);
+            }
         }
 
         function download() {
@@ -717,7 +721,7 @@
                 }
             }
          
-            while(modByte > 0x100) {
+            while(modByte >= 0x100) {
                 modByte -= 0x100
             }
 
@@ -736,14 +740,21 @@
 
         let cols = 16;
 
-        let input = "5643502E584441544100356634643433353330384D6347696E74790030355365616E0030303030303033314D6347696E7479FFFFFFFFFFFFFFFFFF5365616EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113232"
-
         let cellIndex, cellLine, cellCounter;
 
         document.getElementById('inputName').value = "Sean";
         document.getElementById('inputFolder').value = "McGinty";
         document.getElementById('inputBody').value = "Hello World";
         document.getElementById("inputOut").value = "converted.xcp";
+
+        const inputIDs = ["inputName", "inputFolder", "inputBody", "inputOut"];
+        for (let i=0; i<inputIDs.length; i++) {
+            if (localStorage.getItem(inputIDs[i]) !== null) {
+                document.getElementById(inputIDs[i]).value = localStorage.getItem(inputIDs[i]);
+            }
+        }
+        
+        input = generateHex(document.getElementById('inputBody').value, document.getElementById('inputName').value, document.getElementById('inputFolder').value)
         
         renderLines(input);
 
