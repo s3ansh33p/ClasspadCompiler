@@ -113,14 +113,14 @@
         }
 
         /* May be used later */
-        .add {
+        /* .add {
             background-color: cornflowerblue;
         }
 
         .add::after {
             content: "+";
             padding: 0.25em;
-        }
+        } */
 
         /* Info Backougrounds */
 
@@ -354,7 +354,7 @@
             }
             if (hex.length / 2 < cols) {
                 for (let i=(hex.length / 2); i<cols; i++) {
-                    hexCells += `<span class="hex-cell px-1 ${i == (hex.length / 2) ? 'add' : 'invis'}" onmouseover="cellHover(this)" data-index="${i}">${i == (hex.length / 2) ? '' : '00'}</span>`;
+                    hexCells += `<span class="hex-cell px-1 ${i == (hex.length / 2) ? 'add' : 'invis'}" onmouseover="cellHover(this)" data-index="${i}">00</span>`;
                     renderCells += `<span class="render-cell invis" onmouseover="cellHover(this, false)" data-index="${i}">.</span>`;
                 }
             }
