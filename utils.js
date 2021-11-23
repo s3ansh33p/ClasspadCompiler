@@ -102,7 +102,7 @@ function generateHex(content, cpName, cpPath) {
     // join all data fields in order in the file and calculate checksum
     let file_data = "";
     let checksum = 0x00;
-    const convertedKeys = ["mcs", "folname_len", "varname_len", "block31", "len_ascii"];
+    const convertedKeys = ["mcs", "folname_len", "varname_len", "block31", "length_ascii"];
     for (let key in file) {
         if (key === "data") {
             let data = file["data"].text_len + 
@@ -122,10 +122,11 @@ function generateHex(content, cpName, cpPath) {
         }
 
     }
-
-    file_data += asciiToHex(checksum.toString(16));
     
-    console.log(checksum, asciiToHex(checksum.toString(16)))
+    checksum = checksum.toString(16);
+    if (checksum.length == 1) checksum = "0" + checksum;
+    file_data += asciiToHex(checksum);
+    
     console.log(file_data.toUpperCase())
 
     nodeDownload(file_data, filename);
@@ -141,4 +142,19 @@ function updateChecksum(bytes, checksum) {
 }
 
 const filename = "c-converted.xcp"
-generateHex("Hello World", "Sean", "McGinty")
+generateHex("Hello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello World", "Sean", "McGinty")
+
+//3738 - 6531 -7
+//3061 - 3832 -6
+//3966 - 3236 -5
+//3439 - 6466 -4
+//6462 - 3830 -3
+//3661 - 3165 -2
+//6233 - 3736 -1
+//3530 - 3232 HW
+//6665 - 6466 S
+//3963 - 3963 SS
+//3064 - 3064 SSS
+//6361 - 6361 SSSS
+//3837 - 3837 SSSSS
+//3434 - 3434 SSSSSS
