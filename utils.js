@@ -10,6 +10,13 @@ function asciiToHex(str) {
 	return arr.join('');
 }
 
+function hexToAscii(hex) {
+    var str = '';
+    for (var i = 0; i < hex.length; i += 2)
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    return str;
+}
+
 function clean_hex(input, remove_0x) {
     input = input.toUpperCase();
     
@@ -56,17 +63,17 @@ function nodeDownload(hexraw, filename) {
 function generateHex(content, cpName, cpPath) {
     let file = {
         'vcp': '5643502E584441544100',
-        'mcs': asciiToHex('5f4d4353'),
-        'folname_len': '333' + (cpPath.length + 1),
+        'mcs': '5f4d4353', // ha
+        'folname_len': '0' + (cpPath.length + 1), // ha
         'folname': asciiToHex(cpPath)+"00",
-        'varname_len': '333' + (cpName.length + 1),
+        'varname_len': '0' + (cpName.length + 1), // ha
         'varname': asciiToHex(cpName)+"00",
-        'block31': asciiToHex('00000031'),
+        'block31': '00000031', // ha
         'folname2': asciiToHex(cpPath) + "FF".repeat(16 - cpPath.length),
         'varname2': asciiToHex(cpName) + "FF".repeat(16 - cpName.length),
         'len': '',
         'var_type': '475551FFFFFFFFFFFFFFFFFFFF',
-        'length_ascii': '',
+        'length_ascii': '', // ha
         'data': {
             'text_len': '',
             'block_zero_8': '0000000000000000',
@@ -74,8 +81,7 @@ function generateHex(content, cpName, cpPath) {
             'text': asciiToHex(content),
             'eof': '00FF',
             'padding': "11".repeat(3 - ( (content.length + 2) % 4))
-        },
-        'checksum': ''
+        }
     }
 
     // Length Data
@@ -84,7 +90,7 @@ function generateHex(content, cpName, cpPath) {
     file.len = outBytes;
 
     // Length_Ascii Data
-    file.length_ascii = asciiToHex(outBytes);
+    file.length_ascii = outBytes;
 
     // Text_Len Data
     let text_len = (content.length+3).toString(16);
@@ -95,34 +101,26 @@ function generateHex(content, cpName, cpPath) {
 
     // join all data fields in order in the file and calculate checksum
     let file_data = "";
+    let checksum = 0x00;
+    const convertedKeys = ["mcs", "folname_len", "varname_len", "block31", "len_ascii"];
     for (let key in file) {
         if (key === "data") {
-            file_data += file["data"].text_len;
-            file_data += file["data"].block_zero_8;
-            file_data += file["data"].block_zero;
-            file_data += file["data"].text;
-            file_data += file["data"].eof;
-            file_data += file["data"].padding;
-        } else if (key !== "checksum") {
+            let data = file["data"].text_len + 
+            file["data"].block_zero_8 + 
+            file["data"].block_zero + 
+            file["data"].text + 
+            file["data"].eof + 
+            file["data"].padding;
+            file_data += data
+            checksum = updateChecksum(data, checksum)
+        } else if (convertedKeys.indexOf(key) !== -1) {
+            file_data += asciiToHex(file[key]);
+            checksum = updateChecksum(file[key], checksum)
+        } else {
             file_data += file[key];
+            checksum = updateChecksum(file[key], checksum)
         }
-    }
 
-    let checksum = 0;        
-    let bytes = file_data.match(/.{1,2}/g);
-    for (let i=0; i<bytes.length; i++) {
-        checksum -= parseInt(bytes[i], 16);
-        console.log(checksum)
-    }
-
-    while (checksum < -8192) {
-        checksum += 8192;
-    }
-    while (checksum < -1024) {
-        checksum += 1024;
-    }
-    while (checksum < 0) {
-        checksum += 256;
     }
 
     file_data += asciiToHex(checksum.toString(16));
@@ -133,5 +131,14 @@ function generateHex(content, cpName, cpPath) {
     nodeDownload(file_data, filename);
 }   
 
+function updateChecksum(bytes, checksum) {
+    bytes = bytes.match(/.{1,2}/g);
+    for (let i=0; i<bytes.length; i++) {
+        checksum -= parseInt(bytes[i], 16);
+        checksum &= 0xFF;
+    }
+    return checksum;
+}
+
 const filename = "c-converted.xcp"
-generateHex("Hello WorldS", "Sean", "McGinty")
+generateHex("Hello World", "Sean", "McGinty")
