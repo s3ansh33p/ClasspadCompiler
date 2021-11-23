@@ -143,18 +143,3 @@ function updateChecksum(bytes, checksum) {
 
 const filename = "c-converted.xcp"
 generateHex("Hello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello World", "Sean", "McGinty")
-
-//3738 - 6531 -7
-//3061 - 3832 -6
-//3966 - 3236 -5
-//3439 - 6466 -4
-//6462 - 3830 -3
-//3661 - 3165 -2
-//6233 - 3736 -1
-//3530 - 3232 HW
-//6665 - 6466 S
-//3963 - 3963 SS
-//3064 - 3064 SSS
-//6361 - 6361 SSSS
-//3837 - 3837 SSSSS
-//3434 - 3434 SSSSSS

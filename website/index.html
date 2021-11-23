@@ -113,14 +113,14 @@
         }
 
         /* May be used later */
-        /* .add {
+        .add {
             background-color: cornflowerblue;
         }
 
         .add::after {
             content: "+";
             padding: 0.25em;
-        } */
+        }
 
         /* Info Backougrounds */
 
@@ -354,7 +354,7 @@
             }
             if (hex.length / 2 < cols) {
                 for (let i=(hex.length / 2); i<cols; i++) {
-                    hexCells += `<span class="hex-cell px-1 add ${i == (hex.length / 2) ? 'add' : ''}" onmouseover="cellHover(this)" data-index="${i}">00</span>`;
+                    hexCells += `<span class="hex-cell px-1 ${i == (hex.length / 2) ? 'add' : 'invis'}" onmouseover="cellHover(this)" data-index="${i}">${i == (hex.length / 2) ? '' : '00'}</span>`;
                     renderCells += `<span class="render-cell invis" onmouseover="cellHover(this, false)" data-index="${i}">.</span>`;
                 }
             }
@@ -577,11 +577,10 @@
 
         function inputHandler(element) {
             input = generateHex(document.getElementById('inputBody').value, document.getElementById('inputName').value, document.getElementById('inputFolder').value)
-            renderLines(input);
-            const inputIDs = ["inputName", "inputFolder", "inputBody", "inputOut"];
-            for (let i=0; i<inputIDs.length; i++) {
-                localStorage.setItem(inputIDs[i], document.getElementById(inputIDs[i]).value);
+            for (let i=0; i<localStorageIDs.length; i++) {
+                localStorage.setItem(localStorageIDs[i], document.getElementById(localStorageIDs[i]).value);
             }
+            renderLines(input);
         }
 
         function download() {
@@ -629,132 +628,105 @@
         } 
         
         function generateHex(content, cpName, cpPath) {
-            let lengthData = evaluateLengthBytes(content);
-            const headerBytes = "5643502E584441544100356634643433353330" +
-            "3" + (cpPath.length + 1) +
-            asciiToHexString(cpPath) +
-            "0030" +
-            "3" + (cpName.length + 1) +
-            asciiToHexString(cpName) +
-            "003030303030303331" +
-            asciiToHexString(cpPath) +
-            "FF".repeat(8 - cpPath.length) +
-            "FFFFFFFFFFFFFFFF" +
-            asciiToHexString(cpName) +
-            "FF".repeat(8 - cpName.length) +
-            "FFFFFFFFFFFFFFFF" +
-            lengthData[0] +
-            "475551FFFFFFFFFFFFFFFFFFFF" +
-            asciiToHexString(lengthData[0]) +
-            lengthData[2] +
-            "000000000000000000000000";
-            let endBytes = lengthData[1];
-            let filedata = `${headerBytes}${asciiToHexString(content)}${endBytes}`;
-            let parityBytes = evaluateParity(content, endBytes, lengthData[2], cpPath, cpName);
-            filedata += parityBytes;
-            return filedata.toUpperCase()
+            let file = {
+                'vcp': '5643502E584441544100',
+                'mcs': '5f4d4353', // ha
+                'folname_len': '0' + (cpPath.length + 1), // ha
+                'folname': asciiToHexString(cpPath)+"00",
+                'varname_len': '0' + (cpName.length + 1), // ha
+                'varname': asciiToHexString(cpName)+"00",
+                'block31': '00000031', // ha
+                'folname2': asciiToHexString(cpPath) + "FF".repeat(16 - cpPath.length),
+                'varname2': asciiToHexString(cpName) + "FF".repeat(16 - cpName.length),
+                'len': '',
+                'var_type': '475551FFFFFFFFFFFFFFFFFFFF',
+                'length_ascii': '', // ha
+                'data': {
+                    'text_len': '',
+                    'block_zero_8': '0000000000000000',
+                    'block_zero': '00',
+                    'text': asciiToHexString(content),
+                    'eof': '00FF',
+                    'padding': "11".repeat(3 - ( (content.length + 2) % 4))
+                }
+            }
+
+            // Length Data
+            let outBytes = ((Math.round(content.length / 4) * 4) + 16).toString(16);
+            outBytes = "0".repeat(8 - outBytes.length) + outBytes;
+            file.len = outBytes;
+
+            // Length_Ascii Data
+            file.length_ascii = outBytes;
+
+            // Text_Len Data
+            let text_len = (content.length+3).toString(16);
+            text_len += "0".repeat(8 - text_len.length);
+            file.data.text_len = text_len;
+
+            console.log(file)
+
+            // join all data fields in order in the file and calculate checksum
+            let file_data = "";
+            let checksum = 0x00;
+            const convertedKeys = ["mcs", "folname_len", "varname_len", "block31", "length_ascii"];
+            for (let key in file) {
+                if (key === "data") {
+                    let data = file["data"].text_len + 
+                    file["data"].block_zero_8 + 
+                    file["data"].block_zero + 
+                    file["data"].text + 
+                    file["data"].eof + 
+                    file["data"].padding;
+                    file_data += data
+                    checksum = updateChecksum(data, checksum)
+                } else if (convertedKeys.indexOf(key) !== -1) {
+                    file_data += asciiToHexString(file[key]);
+                    checksum = updateChecksum(file[key], checksum)
+                } else {
+                    file_data += file[key];
+                    checksum = updateChecksum(file[key], checksum)
+                }
+
+            }
+            
+            checksum = checksum.toString(16);
+            if (checksum.length == 1) checksum = "0" + checksum;
+            file_data += asciiToHexString(checksum);
+            
+            // console.log(file_data.toUpperCase())
+            return file_data;
         }   
 
-        function evaluateLengthBytes(content) {
-            const srcLength = content.length;
-
-            let contentLength = (srcLength+3).toString(16);
-            if (contentLength.length % 2 === 1) contentLength = "0" + contentLength;
-
-            const endBytes = "00FF" + "11".repeat(3 - ( (srcLength + 2) % 4));
-
-            let outBytes = ((Math.round(srcLength / 4) * 4) + 16).toString(16);
-            outBytes = "0".repeat(8 - outBytes.length) + outBytes;
-
-            return [outBytes, endBytes, contentLength];
-        }
-
-        function evaluatePath(content) {
-            let modByte = 0x00;
-            for (let i=0; i<content.length; i++) {
-                let baseByte = content.charCodeAt(i);
-                modByte -= baseByte * 2;
-            
-                if (modByte < 0) {
-                    modByte += 0x100;
-                } else if (modByte > 0x100) {
-                    modByte -= 0x100
-                }
+        function updateChecksum(bytes, checksum) {
+            bytes = bytes.match(/.{1,2}/g);
+            for (let i=0; i<bytes.length; i++) {
+                checksum -= parseInt(bytes[i], 16);
+                checksum &= 0xFF;
             }
-            
-            modByte -= 0x02 * (content.length - 8)
-            return modByte;
-        }
-
-        function evaluateParity(content, endBytes, contentLength, filepath, filename) {
-            let modByte = 0xC8;
-            modByte += evaluatePath(filepath + filename);
-            for (let i=0; i<content.length; i++) {
-                let baseByte = content.charCodeAt(i);
-                modByte -= baseByte;
-            
-                if (modByte < 0) {
-                    modByte += 0x100;
-                } else if (modByte > 0x100) {
-                    modByte -= 0x100
-                }
-            }
-
-            if (endBytes.length == 10) {
-                modByte -= 0x1C;
-            } else if (endBytes.length == 6) {
-                modByte += 0x10;
-            } else if (endBytes.length == 4) {
-                modByte += 0x20;
-            }
-
-            const decimalContentLength = parseInt( contentLength, 16 ) ;
-            const byteContentLength = parseInt( ( decimalContentLength - 14) / 4 );
-            modByte -= 0x0C * byteContentLength;
-
-            if (decimalContentLength < 10) {
-                modByte += 0x0C
-                if (decimalContentLength == 6) {
-                    modByte -= 0x0C
-                } else if (decimalContentLength == 9) {
-                    modByte -= 0xF4
-                }
-            }
-         
-            while(modByte >= 0x100) {
-                modByte -= 0x100
-            }
-
-            while(modByte < 0) {
-                modByte += 0x100
-            }
-
-            let parityBytes = asciiToHexString(modByte.toString(16));
-            if (parityBytes.length === 2) {
-                parityBytes = `30${parityBytes}`;
-            }
-            return parityBytes;
+            return checksum;
         }
 
         const hexEditor = document.getElementById('hexEditor');
 
+        const localStorageIDs = ["inputName", "inputFolder", "inputBody", "inputOut"];
+
         let cols = 16;
+
+        let input = "5643502E584441544100356634643433353330384D6347696E74790030355365616E0030303030303033314D6347696E7479FFFFFFFFFFFFFFFFFF5365616EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113232"
 
         let cellIndex, cellLine, cellCounter;
 
-        document.getElementById('inputName').value = "Sean";
-        document.getElementById('inputFolder').value = "McGinty";
-        document.getElementById('inputBody').value = "Hello World";
-        document.getElementById("inputOut").value = "converted.xcp";
-
-        const inputIDs = ["inputName", "inputFolder", "inputBody", "inputOut"];
-        for (let i=0; i<inputIDs.length; i++) {
-            if (localStorage.getItem(inputIDs[i]) !== null) {
-                document.getElementById(inputIDs[i]).value = localStorage.getItem(inputIDs[i]);
+        if (localStorage.getItem("inputName")) {
+            for (let i=0; i<localStorageIDs.length; i++) {
+                document.getElementById(localStorageIDs[i]).value = localStorage.getItem(localStorageIDs[i])
             }
+        } else {
+            document.getElementById('inputName').value = "Sean";
+            document.getElementById('inputFolder').value = "McGinty";
+            document.getElementById('inputBody').value = "Hello World";
+            document.getElementById("inputOut").value = "converted.xcp";
         }
-        
-        input = generateHex(document.getElementById('inputBody').value, document.getElementById('inputName').value, document.getElementById('inputFolder').value)
         
         renderLines(input);
 
