@@ -61,6 +61,10 @@ function nodeDownload(hexraw, filename) {
 }
 
 function generateHex(content, cpName, cpPath) {
+    if (content.length > 30720) {
+        console.warn("[WARN] Content is over 30720 bytes. All data after 30720 bytes will be ignored")
+        content = content.slice(0, 30720);
+    }
     let file = {
         'vcp': '5643502E584441544100',
         'mcs': '5f4d4353', // ha
@@ -97,7 +101,7 @@ function generateHex(content, cpName, cpPath) {
     text_len += "0".repeat(8 - text_len.length);
     file.data.text_len = text_len;
 
-    console.log(file)
+    // console.log(file)
 
     // join all data fields in order in the file and calculate checksum
     let file_data = "";
@@ -127,7 +131,7 @@ function generateHex(content, cpName, cpPath) {
     if (checksum.length == 1) checksum = "0" + checksum;
     file_data += asciiToHex(checksum);
     
-    console.log(file_data.toUpperCase())
+    // console.log(file_data.toUpperCase())
 
     nodeDownload(file_data, filename);
 }   
@@ -142,4 +146,4 @@ function updateChecksum(bytes, checksum) {
 }
 
 const filename = "c-converted.xcp"
-generateHex("Hello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello WorldHello World", "Sean", "McGinty")
+generateHex("Max 30720", "Sean", "McGinty")

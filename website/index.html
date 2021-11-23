@@ -263,7 +263,7 @@
                         <label for="inputFolder" class="mb-1">Folder</label>
                         <input maxlength="8" oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white" id="inputFolder">
                         <label for="inputBody" class="mb-1">Content</label>
-                        <input oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white" id="inputBody">
+                        <input maxlength="30720" oninput="inputHandler(this)" type="text" class="form-control form-control-sm bg-dark text-white" id="inputBody">
                         <label for="inputOut" class="mb-1">Download Name</label>
                         <input type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputOut">
                         <button class="btn btn-light w-100 mb-1" onclick="download()">Download</button>
@@ -517,7 +517,7 @@
             },
             {
                 'name': 'info-data',
-                'len': 'X',
+                'len': '0-30720',
                 'desc': 'the actual data, see explanation <a class="text-warning text-decoration-none" href="https://github.com/SnailMath/classpad/blob/main/file_formats/xcp.md#programtext-variables" target="_blank">here</a>'
             },
             {
@@ -628,6 +628,10 @@
         } 
         
         function generateHex(content, cpName, cpPath) {
+            if (content.length > 30720) {
+                console.warn("[WARN] Content is over 30720 bytes. All data after 30720 bytes will be ignored")
+                content = content.slice(0, 30720);
+            }
             let file = {
                 'vcp': '5643502E584441544100',
                 'mcs': '5f4d4353', // ha
