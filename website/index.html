@@ -717,8 +717,6 @@
 
         let cols = 16;
 
-        let input = "5643502E584441544100356634643433353330384D6347696E74790030355365616E0030303030303033314D6347696E7479FFFFFFFFFFFFFFFFFF5365616EFFFFFFFFFFFFFFFFFFFFFFFF0000001C475551FFFFFFFFFFFFFFFFFFFF30303030303031630E00000000000000000000000048656C6C6F20576F726C6400FF11113232"
-
         let cellIndex, cellLine, cellCounter;
 
         if (localStorage.getItem("inputName")) {
@@ -731,6 +729,7 @@
             document.getElementById('inputBody').value = "Hello World";
             document.getElementById("inputOut").value = "converted.xcp";
         }
+        let input = generateHex(document.getElementById('inputBody').value, document.getElementById('inputName').value, document.getElementById('inputFolder').value)
         
         renderLines(input);
 
