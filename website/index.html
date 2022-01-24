@@ -267,6 +267,8 @@
                         <label for="inputOut" class="mb-1">Download Name</label>
                         <input type="text" class="form-control form-control-sm bg-dark text-white mb-2" id="inputOut">
                         <button class="btn btn-light w-100 mb-1" onclick="download()">Download</button>
+                        <label for="fileInput" class="mb-1">Upload File</label>
+                        <input type="file" id="fileInput" class="mb-2" oninput="readFile();">
                         <h6>Hex Information (<a class="text-warning text-decoration-none" href="https://github.com/SnailMath/classpad/blob/main/file_formats/xcp.md" target="_blank">source</a>)</h6>
                         <h6 class="fw-normal">
                             <span>Name:</span>
@@ -581,6 +583,41 @@
                 localStorage.setItem(localStorageIDs[i], document.getElementById(localStorageIDs[i]).value);
             }
             renderLines(input);
+        }
+
+        async function readFile() {
+            const selectedFile = document.getElementById('fileInput').files[0];
+            const reader = new FileReader();
+            let buffer = [];
+            reader.onload = function(e) {
+                buffer = new Uint8Array(e.target.result);
+                let folname_len = parseInt(hexToAscii(buffer[19].toString(16)));
+                let folname = '';
+                for (let i=0; i<folname_len - 1; i++) {
+                    folname += hexToAscii(buffer[20+i].toString(16));
+                }
+                let varname_len = parseInt(hexToAscii(buffer[21+folname_len].toString(16)));
+                let varname = '';
+                for (let i=0; i<varname_len - 1; i++) {
+                    varname += hexToAscii(buffer[22+folname_len+i].toString(16));
+                }
+                let text = '';
+                let index = 100+folname_len+varname_len;
+                while (buffer[index] != 0x00) {
+                    text += hexToAscii(buffer[index].toString(16));
+                    index++;
+                }
+                console.log(`Reading file: ${selectedFile.name} | Varname: ${varname} | Folder: ${folname} | Text: ${text}`);
+                input = generateHex(text, varname, folname)
+                document.getElementById(localStorageIDs[0]).value = varname;
+                document.getElementById(localStorageIDs[1]).value = folname;
+                document.getElementById(localStorageIDs[2]).value = text;
+                for (let i=0; i<localStorageIDs.length; i++) {
+                    localStorage.setItem(localStorageIDs[i], document.getElementById(localStorageIDs[i]).value);
+                }
+                renderLines(input);
+            }
+            reader.readAsArrayBuffer(selectedFile);
         }
 
         function download() {
