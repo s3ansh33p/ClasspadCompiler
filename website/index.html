@@ -307,18 +307,15 @@
             }
         }
 
-        // function that takes in a single ascii character and returns a hex byte
-        function asciiToHex(ascii) {
-            return ascii.charCodeAt(0).toString(16).toUpperCase();
-        }
-
         // function that takes in an ascii string and returns a hex string
-        function asciiToHexString(ascii) {
-            var hex = '';
-            for (var i = 0; i < ascii.length; i++) {
-                hex += asciiToHex(ascii[i]);
+        function asciiToHexString(str) {
+            var arr = [];
+            for (var n = 0, l = str.length; n < l; n++) {
+                var hex = Number(str.charCodeAt(n)).toString(16);
+                if (hex.length == 2) arr.push(hex);
+                else arr.push('0' + hex)
             }
-            return hex;
+            return arr.join('');
         }
 
         // function that takes in an hex string and returns an ascii string

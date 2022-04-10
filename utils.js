@@ -1,13 +1,13 @@
 const fs = require('fs');
 
 function asciiToHex(str) {
-	var arr = [];
-	for (var n = 0, l = str.length; n < l; n ++) 
-     {
-		var hex = Number(str.charCodeAt(n)).toString(16);
-		arr.push(hex);
-	 }
-	return arr.join('');
+    var arr = [];
+    for (var n = 0, l = str.length; n < l; n++) {
+        var hex = Number(str.charCodeAt(n)).toString(16);
+        if (hex.length == 2) arr.push(hex);
+        else arr.push('0' + hex)
+    }
+    return arr.join('');
 }
 
 function hexToAscii(hex) {
@@ -146,4 +146,4 @@ function updateChecksum(bytes, checksum) {
 }
 
 const filename = "c-converted.xcp"
-generateHex("Max 30720", "Sean", "McGinty")
+generateHex("Max 30720\nTest", "Sean", "McGinty")
